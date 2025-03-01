@@ -345,17 +345,19 @@ int main() {
                     }
                 }
 
-                /*int contador = 0;
                 for (int i = 0; i < N; ++i) {
                     for (int j = 0; j < N; ++j) {
-                        if (y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            contador++;
+                        if (k != (TOTAL_JORNADAS - 1)) {
+                            for (int j2 = 0; j2 < N; j2++) {
+                                if (z[i][j][j2][k].get(GRB_DoubleAttr_X) > 0.5) {
+                                    cout << equipos[i].nombre << " se mueve de la ciudad " << equipos[j].nombre << " a la ciudad " << equipos[j2].nombre << " que están a " << distanciasNBA[j][j2] << endl;
+
+                                }
+                            }
+
                         }
                     }
                 }
-
-                cout << contador << endl;*/
-
                 cout << "-----------------------------" << endl;
             }
 

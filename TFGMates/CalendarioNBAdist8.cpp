@@ -16,7 +16,7 @@ const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 4;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 20;                  //Número de jornadas
+const int TOTAL_JORNADAS = 12;                  //Número de jornadas
 
 struct InfoEquipo {
     int id;                                     //Numeración de equipos
@@ -103,10 +103,10 @@ vector<InfoEquipo> equipos = {
     {1, "Brooklyn Nets", "Este", "Atlántico", {0, 2, 3}, {13, 6, 9, 10, 5, 11}, {8}, {7, 12}, {4,5,6,7}},
     {2, "Philadelphia 76ers", "Este", "Atlántico", {0, 1, 3}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8}, {4,5,6,7}},
     {3, "New York Knicks", "Este", "Atlántico", {0, 1, 2}, {7, 8, 11, 13, 6}, {5, 12}, {10, 9}, {4,5,6,7}},
-    {15,"Oklahoma City Thunder", "Oeste", "Noroeste", {5, 6, 7}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3} },
-    {16,"Minnesota Timberwolves", "Oeste", "Noroeste", {4, 6, 7}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3} },
-    {17,"Utah Jazz", "Oeste", "Noroeste", {4, 5, 7}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3} },
-    {18,"Denver Nuggets", "Oeste", "Noroeste", {4, 5, 6}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3} }
+    {4,"Oklahoma City Thunder", "Oeste", "Noroeste", {5, 6, 7}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3} },
+    {5,"Minnesota Timberwolves", "Oeste", "Noroeste", {4, 6, 7}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3} },
+    {6,"Utah Jazz", "Oeste", "Noroeste", {4, 5, 7}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3} },
+    {7,"Denver Nuggets", "Oeste", "Noroeste", {4, 5, 6}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3} }
 };
 
 vector<vector<double>> distanciasNBA = {
@@ -124,7 +124,6 @@ vector<vector<double>> distanciasNBA = {
 
 
 int main() {
-
     try {
         // Inicializar el entorno de Gurobi
         GRBEnv env = GRBEnv(true);
@@ -158,6 +157,14 @@ int main() {
             }
         }
 
+        // Variables d[i][k]: Indica si el equipo i está descansando en la jornada k
+        GRBVar d[N][TOTAL_JORNADAS];
+        for (int i = 0; i < N; ++i) {
+            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                d[i][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "d_" + to_string(i) + "_" + to_string(k));
+            }
+        }
+
 
         // Restricción: Partidos dentro de la división
         for (int i = 0; i < N; ++i) {
@@ -183,97 +190,7 @@ int main() {
         }
 
 
-        //---------------PARTIDOS FUERA DE LA DIVISIÓN-----------------
-        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
-        /*for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
 
-                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                GRBLinExpr partidosEnCasa = 0;
-                GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_conf1[j];
-
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    partidosFuera += y[i][rival][k]; // partidos de i en la ciudad del rival
-                    partidosEnCasa += y[rival][i][k];  // partidos del rival en la ciudad de i
-                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
-                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
-                }
-
-                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra  cada uno de los 6 rivales a los que se enfrentan de este tipo en su misma conferencia
-                model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
-            }
-        }
-
-
-        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (2c y 1f)
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < NUM_RIVALES_CONF_2; j++) {
-
-                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                GRBLinExpr partidosEnCasa = 0;
-                GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_conf2[j];
-
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    partidosFuera += y[i][rival][k]; // partidos de i en la ciudad del rival
-                    partidosEnCasa += y[rival][i][k];  // partidos del rival en la ciudad de i
-                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
-                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
-                }
-
-                // Restricción para que cada equipo juegue 2 partidos en casa y 1 fuera de casa contra cada uno de los 2 rivales a los que se enfrentan de este tipo en su misma conferencia
-                model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
-            }
-        }
-
-
-        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (1c y 2f)
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
-
-                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                GRBLinExpr partidosEnCasa = 0;
-                GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_conf3[j];
-
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    partidosFuera += y[i][rival][k]; // partidos de i enla ciudad del rival
-                    partidosEnCasa += y[rival][i][k];  // partidos del rival en la ciudad de i
-                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
-                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
-                }
-
-                // Restricción para que cada equipo juegue 1 partido en casa y 2 fuera de casa contra cada uno de los 2 rivales a los que se enfrentan de este tipo en su misma conferencia
-                model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
-            }
-        }
-        */
-
-        // Restricción: Partidos contra los equipos de la conferencia contraria
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
-
-                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                GRBLinExpr partidosEnCasa = 0;
-                GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_interconf[j];
-
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    partidosEnCasa += y[i][rival][k]; // partidos de i en la ciudad del rival
-                    partidosFuera += y[rival][i][k];  // partidos del rival en la ciudad de i
-                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
-                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
-                }
-
-                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra cada uno de los 15 rivales a los que se enfrentan de la otra conferencia
-                model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
-            }
-        }
 
 
         // Restricción: Cada equipo está en una ciudad por jornada
@@ -283,7 +200,7 @@ int main() {
                 for (int j = 0; j < N; ++j) {
                     sum_y += y[i][j][k];
                 }
-                model.addConstr(sum_y == 1, "UnicaCiudad_" + to_string(i) + "_Jornada_" + to_string(k));
+                model.addConstr(sum_y <= 1, "UnicaCiudad_" + to_string(i) + "_Jornada_" + to_string(k));
             }
         }
 
@@ -315,8 +232,40 @@ int main() {
             }
         }
 
+        /*
+
+        //Un equipo tiene que descansar en cada jornada
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            for (int j = 0; j < NUM_DIVISIONES; j++) {
+                GRBLinExpr equipos_descansan = 0;
+                for (int i = 0; i < EQUIPOS_POR_DIVISION; i++) {
+                    equipos_descansan += d[5*j + i][k];
+                }
+                model.addConstr(equipos_descansan == 1, "Equipodescansa_Jornada_" + to_string(k));
+            }
+        }*/
+
+
+        //Un equipo tiene que descansar en cada jornada
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                for (int k = 0; k < N; k++) {
+                    model.addConstr(d[i][k] == 1);
+                }
+
+            }
+
+        }
+
+
+
+
+
+
+
+
         // Función objetivo: Minimizar distancias
-        GRBLinExpr distanciaTotal = 0;
+        /*GRBLinExpr distanciaTotal = 0;
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
                 for (int j2 = 0; j2 < N; ++j2) {
@@ -326,7 +275,9 @@ int main() {
                 }
             }
         }
-        model.setObjective(distanciaTotal, GRB_MINIMIZE);
+
+
+        model.setObjective(distanciaTotal, GRB_MINIMIZE);*/
 
 
 
@@ -334,7 +285,7 @@ int main() {
 
 
         // Función objetivo vacía (solo generar el calendario)
-        //model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
+        model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
 
         // Optimizar el modelo
         model.optimize();
@@ -346,12 +297,30 @@ int main() {
             for (int k = 0; k < TOTAL_JORNADAS; ++k) {
                 cout << "Jornada " << k + 1 << ":" << endl;
                 for (int i = 0; i < N; ++i) {
+                    int cont = 0;
                     for (int j = 0; j < N; ++j) {
-                        if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
+                        if (y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            cont++;
+                            // cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
+                            cout << "Soy " << equipos[i].nombre << " y estoy en " << equipos[j].nombre << endl;
                         }
+                        /*if (k != (TOTAL_JORNADAS - 1)) {
+                            for (int j2 = 0; j2 < N; j2++) {
+                                if (z[i][j][j2][k].get(GRB_DoubleAttr_X) > 0.5) {
+                                    cout << equipos[i].nombre << " se mueve de la ciudad " << equipos[j].nombre << " a la ciudad " << equipos[j2].nombre << endl;
+
+                                }
+                            }
+
+                        }*/
                     }
+                    cout << cont << endl;
+                    /*if (d[i][k].get(GRB_DoubleAttr_X) > 0.5) {
+                        cout << equipos[i].nombre << " descansa" << endl;
+                    }*/
                 }
+
+
 
                 /*int contador = 0;
                 for (int i = 0; i < N; ++i) {
