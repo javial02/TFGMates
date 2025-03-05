@@ -113,12 +113,14 @@ int main() {
         GRBModel model = GRBModel(env);
 
 
-        // Variables y[i][j][k]: Indica si el equipo i está en la ciudad j durante la jornada k
-        GRBVar y[N][N][TOTAL_JORNADAS];
+        // Variables binarias: x[i][j][k] donde i es el equipo local, j es el visitante y k es la jornada
+        GRBVar x[N][N][TOTAL_JORNADAS];
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    y[i][j][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
+                if (i != j) {
+                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                        x[i][j][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
+                    }
                 }
             }
         }
@@ -136,7 +138,7 @@ int main() {
             }
         }
 
-        
+
         // Variables d[i][k]: Indica si el equipo i está descansando en la jornada k
         GRBVar d[N][TOTAL_JORNADAS];
         for (int i = 0; i < N; ++i) {
@@ -145,9 +147,7 @@ int main() {
             }
         }
 
-
-
-        // Restricción: Partidos dentro de la división
+        //Restricción de partidos de la división
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
 
@@ -157,49 +157,34 @@ int main() {
                 int rival = equipos[i].rivales_division[j];
 
                 for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    partidosFuera += y[i][rival][k]; // partidos de i en la ciudad del rival
-                    partidosEnCasa += y[rival][i][k];  // partidos del rival en la ciudad de i
-                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
-                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
+                    partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
+                    partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
                 }
 
                 // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra un rival de la misma división que ellos
                 model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
                 model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
-
             }
         }
 
-        
-        // Restricción: Cada equipo descansa 4 veces en la temporada
-        for (int i = 0; i < N; i++) {
-            GRBLinExpr sum_descansos = 0;
-            for (int k = 0; k < TOTAL_JORNADAS; k++) {
-                sum_descansos += d[i][k];
-            }
-            model.addConstr(sum_descansos == 4, "Descansos del equipo_" + to_string(i));
-        }
 
-
-        // Restricción: Cada equipo tiene que jugar o descansar cada jornada
-        /*for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            for (int i = 0; i < N; i++) {
-                GRBLinExpr sum_juega_descansa = 0;
-                for (int j = 0; j < N; j++) {
-                    sum_juega_descansa += y[i][j][k];
-                }
-                sum_juega_descansa += d[i][k];
-                model.addConstr(sum_juega_descansa == 1, "Equipo_" + to_string(i));
-            }
-        }*/
-
-        // Restricción: Si un equipo descansa, se quede en esa ciudad para la siguiente jornada
+        // Restricción: Cada equipo solo puede jugar un partido por jornada
         for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < N; ++j) {
-                for (int k = 1; k < TOTAL_JORNADAS; ++k) {
-                    model.addConstr(y[i][j][k] >= y[i][j][k - 1] - (1 - d[i][k]), "Permanencia1_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
-                    model.addConstr(y[i][j][k] <= y[i][j][k - 1] + (1 - d[i][k]), "Permanencia2_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
+            for (int k = 0; k < TOTAL_JORNADAS; k++) {
+
+                // Inicializar contadores para ver la cantidad de partidos que juega cada equipo por jornada
+                GRBLinExpr partidosPorJornada = 0;
+
+                for (int j = 0; j < N; ++j) {
+                    if (i != j) {
+                        partidosPorJornada += x[i][j][k]; // partidos de i en casa contra j 
+                        partidosPorJornada += x[j][i][k];  // partidos de i fuera de casa contra j
+                    }
+
                 }
+
+                // Restricción para que cada equipo juegue 1 partido por jornada
+                model.addConstr(partidosPorJornada <= 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
             }
         }
 
@@ -213,72 +198,29 @@ int main() {
         }
 
 
-        // Restricción: Cada equipo está en una ciudad por jornada
-        for (int i = 0; i < N; ++i) {
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                GRBLinExpr sum_y = 0;
-                for (int j = 0; j < N; ++j) {
-                    sum_y += y[i][j][k];
-                }
-                model.addConstr(sum_y == 1, "UnicaCiudad_" + to_string(i) + "_Jornada_" + to_string(k));
-            }
-        }
-
-        // Definir variables auxiliares v[i][j][k]
-        GRBVar v[N][N][TOTAL_JORNADAS];
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < N; ++j) {
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    v[i][j][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "v_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
-                }
-            }
-        }
-
-        // Restricciones para definir v[i][j][k]
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < N; ++j) {
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    model.addConstr(v[i][j][k] <= d[i][k], "Vincula_v_con_d_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
-                    model.addConstr(v[i][j][k] <= y[i][j][k], "Vincula_v_con_y_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
-                    model.addConstr(v[i][j][k] >= d[i][k] + y[i][j][k] - 1, "Vincula_v_con_d_y_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
-                }
-            }
-        }
-
-        // Restricción modificada: No más de un equipo visitante en la ciudad, excepto si uno de ellos descansa
-        for (int j = 0; j < N; ++j) {  // Ciudad j
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                GRBLinExpr visitantesEnCiudad = 0;
-                GRBLinExpr descansoEnCiudad = 0;
-
-                for (int i = 0; i < N; ++i) {  // Equipos i
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            for (int i = 0; i < N; i++) {
+                GRBLinExpr sum_partidos = 0;
+                for (int j = 0; j < EQUIPOS_POR_DIVISION; j++) {
                     if (i != j) {
-                        visitantesEnCiudad += y[i][j][k];  // Cuenta los visitantes en la ciudad j
-                        descansoEnCiudad += v[i][j][k];    // Cuenta los visitantes que descansan en j
+                        sum_partidos += x[i][j][k];
+                        sum_partidos += x[j][i][k];
                     }
                 }
-
-                // Permitir hasta 2 visitantes solo si uno de ellos descansa
-                model.addConstr(visitantesEnCiudad <= 1 + descansoEnCiudad, "MaxVisitantes_" + to_string(j) + "_Jornada_" + to_string(k));
+                model.addConstr(sum_partidos + d[i][k] == 1, "O se descansa o se juega");
             }
         }
 
 
-        // Restricción: Si un equipo está en su ciudad y no descansa, debe haber un visitante
-        for (int i = 0; i < N; ++i) {  // Para cada equipo
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {  // Para cada jornada
-                GRBLinExpr visitantesEnCiudad = 0;
-
-                for (int m = 0; m < N; ++m) {  // Sumar los visitantes en la ciudad i
-                    if (m != i) {
-                        visitantesEnCiudad += y[m][i][k];  // Equipos que están en i en jornada k
-                    }
-                }
-
-                // Si el equipo i está en su ciudad y no descansa, debe haber al menos un visitante
-                model.addQConstr(y[i][i][k] * (1 - d[i][k]) <= visitantesEnCiudad, "LocalJuega_" + to_string(i) + "_Jornada_" + to_string(k));
+        // Restricción: Cada equipo descansa 4 veces en la temporada
+        for (int i = 0; i < N; i++) {
+            GRBLinExpr sum_descansos = 0;
+            for (int k = 0; k < TOTAL_JORNADAS; k++) {
+                sum_descansos += d[i][k];
             }
+            model.addConstr(sum_descansos == 4, "Descansos del equipo_" + to_string(i));
         }
+
 
 
 
@@ -288,30 +230,13 @@ int main() {
             for (int j = 0; j < N; ++j) {
                 for (int j2 = 0; j2 < N; ++j2) {
                     for (int k = 1; k < TOTAL_JORNADAS; ++k) {
-                        model.addConstr(z[i][j][j2][k - 1] <= y[i][j][k - 1], "RestriccionViaje1_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
-                        model.addConstr(z[i][j][j2][k - 1] <= y[i][j2][k], "RestriccionViaje2_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
-                        model.addConstr(z[i][j][j2][k - 1] >= y[i][j][k - 1] + y[i][j2][k] - 1, "RestriccionViaje3_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
+                        model.addConstr(z[i][j][j2][k - 1] <= x[i][j][k - 1], "RestriccionViaje1_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
+                        model.addConstr(z[i][j][j2][k - 1] <= x[i][j2][k], "RestriccionViaje2_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
+                        model.addConstr(z[i][j][j2][k - 1] >= x[i][j][k - 1] + x[i][j2][k] - 1, "RestriccionViaje3_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
                     }
                 }
             }
         }
-
-        
-        /*
-        //Un equipo tiene que descansar en cada jornada por cada division
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            for (int j = 0; j < NUM_DIVISIONES; j++) {
-                GRBLinExpr equipos_descansan = 0;
-                for (int i = 0; i < EQUIPOS_POR_DIVISION; i++) {
-                    equipos_descansan += d[5*j + i][5 * j + i][k];
-                }
-                model.addConstr(equipos_descansan == 1, "Equipodescansa_Jornada_" + to_string(k));
-            }
-        }*/
-        
-
-
-
 
 
 
@@ -330,7 +255,7 @@ int main() {
 
         model.setObjective(distanciaTotal, GRB_MINIMIZE);
 
-        
+
 
 
 
@@ -350,10 +275,10 @@ int main() {
                 for (int i = 0; i < N; ++i) {
                     int cont = 0;
                     for (int j = 0; j < N; ++j) {
-                        if (y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                        if (x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
                             cont++;
-                           // cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
-                           cout << "Soy " << equipos[i].nombre << " y estoy en " << equipos[j].nombre << endl;
+                            // cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
+                            cout << "Soy " << equipos[i].nombre << " y estoy en " << equipos[j].nombre << endl;
                         }
                         /*if (k != (TOTAL_JORNADAS - 1)) {
                             for (int j2 = 0; j2 < N; j2++) {
@@ -362,7 +287,7 @@ int main() {
 
                                 }
                             }
-                         
+
                         }*/
                     }
                     if (d[i][k].get(GRB_DoubleAttr_X) > 0.5) {
@@ -371,7 +296,7 @@ int main() {
                     cout << cont << endl;
                 }
 
-                
+
 
                 /*int contador = 0;
                 for (int i = 0; i < N; ++i) {
