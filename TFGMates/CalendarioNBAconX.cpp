@@ -250,75 +250,10 @@ int main() {
         }
 
 
-        GRBLinExpr distanciaTotal = 0.0;
-
-        vector<vector<InfoUltimosPartidos>> info_ult_rival;
-
-        for (int i = 0; i < N; i++) {
-            vector<InfoUltimosPartidos> aux;
-            for (int k = 0; k < TOTAL_JORNADAS; k++) {
-                InfoUltimosPartidos iu = { 0, false };
-                aux.push_back(iu);
-            }
-            info_ult_rival.push_back(aux);
-        }
-
-
-        InfoUltimosPartidos taux1, taux2;
-        int dist = 0;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    if (k == 0) {
-                        if (x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-
-                            taux1.ultimo_rival = j;
-                            taux1.en_casa = true;
-                            taux2.ultimo_rival = i;
-                            taux2.en_casa = false;
-
-
-                            info_ult_rival[i][k] = taux1;
-                            info_ult_rival[j][k] = taux2;
-
-                            distanciaTotal += distanciasNBA[i][j];
-                        }
-
-                    }
-                    else {
-                        if (x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-
-                            taux1.ultimo_rival = j;
-                            taux1.en_casa = true;
-                            taux2.ultimo_rival = i;
-                            taux2.en_casa = false;
-
-                            info_ult_rival[i][k] = taux1;
-                            info_ult_rival[j][k] = taux2;
-
-                            if (!info_ult_rival[i][k - 1].en_casa) {                                            //Si el equipo i jugó fuera de casa 
-                                distanciaTotal += distanciasNBA[i][info_ult_rival[i][k - 1].ultimo_rival];      //Habrá recorrido desde la ciudad de su anterior rival hasta la ciudad i
-                            }
-
-                            //Si el equipo i jugó el último partido también en casa, no se suma nada, ya que no se ha movido
-
-                            if (info_ult_rival[j][k - 1].en_casa) {                                             //Si el equipo j (vistante) jugó en casa su último partido
-                                distanciaTotal += distanciasNBA[i][j];                                          //Se suma la distancia de la ciudad i a la ciudad j
-                            }
-                            else {                                                                              //Si el equipo j (visitante) jugó fuera de casa su último partido
-                                distanciaTotal += distanciasNBA[i][info_ult_rival[j][k - 1].ultimo_rival];      //Se suma la distancia de la ciudad del último rival de j a la ciudad de i
-                            }
-
-                        }
-                    }
-                }
-            }
-        }
-
 
 
         // Función objetivo vacía (solo generar el calendario)
-        model.setObjective(GRBLinExpr(distanciaTotal), GRB_MINIMIZE);
+        model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
 
         // Optimizar el modelo
         model.optimize();
@@ -332,7 +267,7 @@ int main() {
                 for (int i = 0; i < N; ++i) {
                     for (int j = 0; j < N; ++j) {
                         if (i != j && x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            cout << equipos[i].nombre << " contra " << equipos[j].nombre << endl;
+                            cout << equipos[i].nombre << " vs " << equipos[j].nombre << endl;
                         }
                     }
                 }

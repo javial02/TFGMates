@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const int N = 5;								//Número de franquicias en total
+const int N = 30;								//Número de franquicias en total
 const int CONFERENCIAS = 2;						//Número de conferencias
 const int DIVISIONES_POR_CONFERENCIA = 3;		//Número de divisiones por conferencia
 const int EQUIPOS_POR_DIVISION = 5;				//Número de equipos por cada división
@@ -16,7 +16,7 @@ const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 15;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 20;                  //Número de jornadas
+const int TOTAL_JORNADAS = 30;                  //Número de jornadas
 const int NUM_DIVISIONES = 6;                   //Número de divisiones
 
 struct InfoEquipo {
@@ -32,7 +32,7 @@ struct InfoEquipo {
 };
 
 
-/*vector<InfoEquipo> equipos = {
+vector<InfoEquipo> equipos = {
     {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
     {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
     {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
@@ -96,30 +96,34 @@ vector<vector<double>> distanciasNBA = {
     {3011.62, 2820.64, 2787.59, 2819.91, 2546.23, 2041.6, 2187.86, 2372.12, 2308.82, 2085.18, 2679.5, 2729.67, 2889.4, 2468.83, 3113.06, 1621.66, 1893.74, 652.12, 1125.27, 580.02, 2276.23, 2090.11, 1739.51, 1727.71, 1932.11, 391.58, 391.58, 0, 91.84, 755.3},
     {3095.38, 2904.41, 2871.35, 2903.68, 2630, 2125.37, 2271.63, 2455.89, 2392.59, 2167.89, 2701.77, 2813.44, 2870.28, 2456.9, 3093.94, 1609.74, 1977.51, 735.88, 1209.03, 635.81, 2258.13, 2076.58, 1721.42, 1714.18, 1913.57, 367.92, 367.92, 91.84, 0, 736.92},
     {2651.26, 2429.33, 2345.09, 2410.02, 2243.44, 1754.12, 1706.17, 2013.85, 2006.03, 1829.15, 2090.87, 2302.2, 2134.7, 1846, 2358.36, 959.81, 1645.74, 659.75, 863.56, 1334.76, 1521.16, 1424.6, 984.45, 1064.58, 1177.05, 373.52, 373.52, 755.3, 736.92, 0}
-};*/
-
-
-vector<InfoEquipo> equipos = {
-    {0, "Boston Celtics", "Este", "Atlántico", {1, 2, 3}, {8, 7, 5, 10, 12}, {9, 13}, {6, 11}, {4,5,6,7}},
-    {1, "Brooklyn Nets", "Este", "Atlántico", {0, 2, 3}, {13, 6, 9, 10, 5, 11}, {8}, {7, 12}, {4,5,6,7}},
-    {2, "Philadelphia 76ers", "Este", "Atlántico", {0, 1, 3}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8}, {4,5,6,7}},
-    {3, "New York Knicks", "Este", "Atlántico", {0, 1, 2}, {7, 8, 11, 13, 6}, {5, 12}, {10, 9}, {4,5,6,7}},
-    {4,"Oklahoma City Thunder", "Oeste", "Noroeste", {5, 6, 7}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3} },
-    {5,"Minnesota Timberwolves", "Oeste", "Noroeste", {4, 6, 7}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3} },
-    {6,"Utah Jazz", "Oeste", "Noroeste", {4, 5, 7}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3} },
-    {7,"Denver Nuggets", "Oeste", "Noroeste", {4, 5, 6}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3} }
 };
 
-vector<vector<double>> distanciasNBA = {
-    {0, 217.9, 309.3, 213.78, 1689.49, 1399.98, 2365.09, 1969.76},
-    {217.9, 0, 98.12, 5.45, 1467.56, 1209, 2174.12, 1778.79},
-    {309.3, 98.12, 0, 96.67, 1383.31, 1175.94, 2141.06, 1726.81},
-    {213.78, 5.45, 96.67, 0, 1451.06, 1208.36, 2173.39, 1777.98},
-    {1689.49, 1467.56, 1383.31, 1451.06, 0, 789.32, 1188.33, 677.57},
-    {1399.98, 1209, 1175.94, 1208.36, 789.32, 0, 1247.22, 914.03},
-    {2365.09, 2174.12, 2141.06, 2173.39, 1188.33, 1247.22, 0, 519.27},
-    {1969.76, 1778.79, 1726.81, 1777.98, 677.57, 914.03, 519.27, 0},
-};
+
+
+double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
+    double total_dist = 0;
+    for (int i = 0; i < N; i++) {
+        if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
+            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
+        }
+        else if (kantes < 0) {
+            total_dist += distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
+        }
+        else if(kdespues > TOTAL_JORNADAS -1){
+            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]];
+        }
+    }
+
+    return total_dist;
+}
+
+void cambiaJornadas(int k1, int k2, vector<vector<int>>& viajes) {
+    for (int i = 0; i < N; i++) {
+        int aux = viajes[i][k1];
+        viajes[i][k1] = viajes[i][k2];
+        viajes[i][k2] = aux;
+    }
+}
 
 
 
@@ -149,29 +153,9 @@ int main() {
         }
 
 
-        // Variables z[i][j][j'][k]: Indica si el equipo i viaja de j a j' entre jornadas k-1 y k
-        GRBVar z[N][N][N][TOTAL_JORNADAS - 1];
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < N; ++j) {
-                for (int j2 = 0; j2 < N; ++j2) {
-                    for (int k = 1; k < TOTAL_JORNADAS; ++k) {
-                        z[i][j][j2][k - 1] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
-                    }
-                }
-            }
-        }
-
-
-        /*// Variables d[i][k]: Indica si el equipo i está descansando en la jornada k
-        GRBVar d[N][TOTAL_JORNADAS];
-        for (int i = 0; i < N; ++i) {
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                d[i][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "d_" + to_string(i) + "_" + to_string(k));
-            }
-        }*/
 
         //Restricción de partidos de la división
-        for (int i = 0; i < N; ++i) {
+       /* for (int i = 0; i < N; ++i) {
             for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
 
                 // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
@@ -191,7 +175,7 @@ int main() {
         }
 
         //---------------PARTIDOS FUERA DE LA DIVISIÓN-----------------
-       /* // Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
+        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
 
@@ -210,6 +194,7 @@ int main() {
                 model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
         }
+
 
 
         // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (2c y 1f)
@@ -233,6 +218,7 @@ int main() {
         }
 
 
+
         // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (1c y 2f)
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
@@ -253,6 +239,7 @@ int main() {
             }
         }
         */
+
 
         // Restricción: Partidos contra los equipos de la conferencia contraria
         for (int i = 0; i < N; ++i) {
@@ -275,6 +262,7 @@ int main() {
         }
 
 
+
         // Restricción: Cada equipo solo puede jugar un partido por jornada
         for (int i = 0; i < N; ++i) {
             for (int k = 0; k < TOTAL_JORNADAS; k++) {
@@ -291,110 +279,12 @@ int main() {
                 }
 
                 // Restricción para que cada equipo juegue 1 partido por jornada
-                model.addConstr(partidosPorJornada <= 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
+                model.addConstr(partidosPorJornada == 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
             }
         }
-
-        // Restricción: Solo un equipo descansa por jornada
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            GRBLinExpr sum_descansos_por_jornada = 0;
-            for (int i = 0; i < N; i++) {
-                sum_descansos_por_jornada += d[i][k];
-            }
-            model.addConstr(sum_descansos_por_jornada == 1, "Descansos_jornada_" + to_string(k));
-        }
-
-
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            for (int i = 0; i < N; i++) {
-                GRBLinExpr sum_partidos = 0;
-                for (int j = 0; j < EQUIPOS_POR_DIVISION; j++) {
-                    if (i != j) {
-                        sum_partidos += x[i][j][k];
-                        sum_partidos += x[j][i][k];
-                    }
-                }
-                model.addConstr(sum_partidos + d[i][k] == 1, "O se descansa o se juega");
-            }
-        }
-
-
-        /*// Restricción: Cada equipo descansa 4 veces en la temporada      CREO QUE SOBRA!!!!!!!!!!!
-        for (int i = 0; i < N; i++) {
-            GRBLinExpr sum_descansos = 0;
-            for (int k = 0; k < TOTAL_JORNADAS; k++) {
-                sum_descansos += d[i][k];
-            }
-            model.addConstr(sum_descansos == 4, "Descansos del equipo_" + to_string(i));
-        }*/
-
-
-
-
-
-        // Relación entre y y z: Si viajan entre ciudades
-        for (int i = 0; i < N; i++) {
-            for (int j1 = 0; j1 < N; j1++) {
-                for (int j2 = 0; j2 < N; j2++) {
-                    for (int k = 1; k < TOTAL_JORNADAS; k++) {
-                        if (j1 != i && j2 != i) {
-                            model.addConstr(z[i][i][i][k - 1] >= (x[i][j1][k - 1] + x[i][j2][k] - 1), "El equipo i juega dos partidos seguidos en casa");
-                            model.addConstr(z[i][i][j2][k - 1] >= x[i][j1][k - 1] + x[j2][i][k] - 1, "El equipo i juega un partido en casa y el siguiente fuera");
-                            model.addConstr(z[i][j1][i][k - 1] >= x[j1][i][k - 1] + x[i][j2][k] - 1, "El equipo i juega un partido fuera y el sigueinte en casa");
-                            model.addConstr(z[i][j1][j2][k - 1] >= x[j1][i][k - 1] + x[j2][i][k] - 1, "El equipo i juega dos partidos seguidos fuera de casa");
-                            /*model.addConstr(z[i][i][i][k - 1] <= x[i][j1][k - 1], "RestriccionViaje1_");
-                            model.addConstr(z[i][i][j2][k - 1] <= x[i][j1][k - 1], "RestriccionViaje1_");
-                            model.addConstr(z[i][j1][i][k - 1] <= x[j1][i][k - 1], "RestriccionViaje1_");
-                            model.addConstr(z[i][j1][j2][k - 1] <= x[j1][i][k - 1], "RestriccionViaje1_");
-                            model.addConstr(z[i][i][i][k - 1] <= x[i][j2][k], "RestriccionViaje2_");
-                            model.addConstr(z[i][j1][i][k - 1] <= x[i][j2][k], "RestriccionViaje2_");
-                            model.addConstr(z[i][i][j2][k - 1] <= x[j2][i][k], "RestriccionViaje2_");
-                            model.addConstr(z[i][j1][j2][k - 1] <= x[j2][i][k], "RestriccionViaje2_");*/
-
-                        }
-                       
-                    }
-                }
-            }
-        }
-
-        /*for (int i = 0; i < N; i++) {
-            for (int k = 1; k < TOTAL_JORNADAS; k++) {
-                GRBLinExpr sum_viajes = 0;
-                for (int j1 = 0; j1 < N; j1++) {
-                    for (int j2 = 0; j2 < N; j2++) {
-                        sum_viajes += z[i][j1][j2][k - 1];
-                    }
-                }
-                model.addConstr(sum_viajes == 1, "Max_1_viaje_" + to_string(i) + "_J" + to_string(k));
-            }
-        }*/
-
-
-
-
-        // Función objetivo: Minimizar distancias
-        GRBLinExpr distanciaTotal = 0;
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < N; ++j) {
-                for (int j2 = 0; j2 < N; ++j2) {
-                    for (int k = 1; k < TOTAL_JORNADAS; ++k) {
-                        distanciaTotal += z[i][j][j2][k - 1] * distanciasNBA[j][j2];
-                    }
-                }
-            }
-        }
-
-
-        model.setObjective(distanciaTotal, GRB_MINIMIZE);
-
-
-
-
-
 
         // Función objetivo vacía (solo generar el calendario)
-        //model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
+        model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
 
         // Optimizar el modelo
         model.optimize();
@@ -408,24 +298,95 @@ int main() {
                 for (int i = 0; i < N; ++i) {
                     int cont = 0;
                     for (int j = 0; j < N; ++j) {
-                        
+
                         if (i != j && x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
                             cout << equipos[i].nombre << " vs " << equipos[j].nombre << endl;
                         }
-                 
-                    }
-                    if (d[i][k].get(GRB_DoubleAttr_X) > 0.5) {
-                        cout << equipos[i].nombre << " descansa" << endl;
+
                     }
                 }
 
                 cout << "-----------------------------" << endl;
             }
 
+            vector<vector<int>> viajes;
+            bool encontrado;
+
+
+            for (int i = 0; i < N; i++) {
+                vector<int> recorrido;
+                for (int k = 0; k < TOTAL_JORNADAS; k++) {
+                    encontrado = false;
+                    for (int j = 0; j < N && !encontrado; j++) {
+                        if (i != j && x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            recorrido.push_back(i);
+                            encontrado = true;
+                        }
+                        else if (i != j && x[j][i][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            recorrido.push_back(j);
+                            encontrado = true;
+                        }
+                    }
+                }
+
+                viajes.push_back(recorrido);
+
+            }
+
+            double distancia = 0;
+            for (int i = 0; i < N; i++) {
+                for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                    distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+                }
+            }
+
+            cout << "Distancia inicial: " << distancia << endl;
+
+            int k1 = 0;
+            double diferencia = 0;
+            double distancia_inicial = 0;
+            double distancia_final = 0;
+            while (k1 < TOTAL_JORNADAS) {
+                int k2 = k1 + 1;
+                while (k2 < TOTAL_JORNADAS) {
+                    if (k1 - k2 == 1) {
+                        double d1 = calculaDistancias(k1, k1 - 1, k1 + 1, viajes);
+                        double d2 = calculaDistancias(k2, k2 - 1, k2 + 1, viajes);
+                        double d3 = calculaDistancias(k2, k1 - 1, k1 + 2, viajes);
+                        double d4 = calculaDistancias(k1, k2 - 2, k2 + 1, viajes);
+                        distancia_inicial = calculaDistancias(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias(k2, k2 - 1, k2 + 1, viajes);
+                        distancia_final = calculaDistancias(k2, k1 - 1, k1 + 2, viajes) + calculaDistancias(k1, k2 - 2, k2 + 1, viajes);
+                    }
+                    else {
+                        distancia_inicial = calculaDistancias(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias(k2, k2 - 1, k2 + 1, viajes);
+                        distancia_final = calculaDistancias(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias(k1, k2 - 1, k2 + 1, viajes);
+                    }
+                   
+
+                    if (distancia_final < distancia_inicial) {
+                        diferencia = distancia_inicial - distancia_final;
+                        distancia -= diferencia;
+                        cambiaJornadas(k1, k2, viajes);
+                        cout << "He cambiado la jornada " << k1 + 1 << " por la jornada " << k2 + 1 << "recortando " << diferencia << " millas" << endl;
+                        k1 = -1;
+                        break;
+                    }
+                    else {
+                        k2++;
+                    }
+                }
+                k1++;
+            }
+
+
+            cout << "Distancia final: " << distancia << endl;
+
         }
         else {
             cout << "No se encontró una solución óptima." << std::endl;
         }
+
+        
 
     }
     catch (GRBException e) {
@@ -434,6 +395,12 @@ int main() {
     catch (...) {
         cout << "Error desconocido" << endl;
     }
+
+
+    
+    
+
+
     return 0;
 }
 
