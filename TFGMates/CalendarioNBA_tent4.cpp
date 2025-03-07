@@ -16,7 +16,7 @@ const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 15;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 30;                  //Número de jornadas
+const int TOTAL_JORNADAS = 82;                  //Número de jornadas
 const int NUM_DIVISIONES = 6;                   //Número de divisiones
 
 struct InfoEquipo {
@@ -99,29 +99,103 @@ vector<vector<double>> distanciasNBA = {
 };
 
 
+/*
+vector<InfoEquipo> equipos = {
+    {0, "Boston Celtics", "Este", "Atlántico", {1, 2, 3}, {8, 7, 5, 10, 12}, {9, 13}, {6, 11}, {}},
+    {1, "Brooklyn Nets", "Este", "Atlántico", {0, 2, 3}, {13, 6, 9, 10, 5, 11}, {8}, {7, 12}, {}},
+    {2, "Philadelphia 76ers", "Este", "Atlántico", {0, 1, 3}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8}, {}},
+    {3, "New York Knicks", "Este", "Atlántico", {0, 1, 2}, {7, 8, 11, 13, 6}, {5, 12}, {10, 9}, {}},
+};
 
-double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
+vector<vector<double>> distanciasNBA = {
+    {0, 217.9, 309.3, 213.78},
+    {217.9, 0, 98.12, 5.45},
+    {309.3, 98.12, 0, 96.67},
+    {213.78, 5.45, 96.67, 0},
+};
+*/
+
+double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes, int local, int visitante) {
     double total_dist = 0;
-    for (int i = 0; i < N; i++) {
-        if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
-        }
-        else if (kantes < 0) {
-            total_dist += distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
-        }
-        else if(kdespues > TOTAL_JORNADAS -1){
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]];
-        }
+    if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
+        total_dist += distanciasNBA[viajes[local][kantes]][local] + distanciasNBA[local][viajes[local][kdespues]];
+        total_dist += distanciasNBA[viajes[visitante][kantes]][local] + distanciasNBA[local][viajes[visitante][kdespues]];
+    }
+    else if (kantes < 0) {
+        total_dist += distanciasNBA[local][viajes[local][kdespues]];
+        total_dist += distanciasNBA[local][viajes[visitante][kdespues]] + distanciasNBA[local][visitante];
+    }
+    else if (kdespues > TOTAL_JORNADAS - 1) {
+        total_dist += distanciasNBA[viajes[local][kantes]][local];
+        total_dist += distanciasNBA[viajes[visitante][kantes]][local] + distanciasNBA[local][visitante];
     }
 
     return total_dist;
 }
 
-void cambiaJornadas(int k1, int k2, vector<vector<int>>& viajes) {
-    for (int i = 0; i < N; i++) {
-        int aux = viajes[i][k1];
-        viajes[i][k1] = viajes[i][k2];
-        viajes[i][k2] = aux;
+double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante, int jornada, int & j_partido) {
+    j_partido = -1;
+    double dist_nueva = 0;
+    double dist_actual = 0;
+    double max = 0;
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {
+        if (viajes[visitante][k] == visitante && viajes[local][k] == visitante) {
+            if (k - jornada == 1) {
+                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
+                dist_nueva = calculaDistancias(k, k, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
+            }
+            else if (k - jornada == -1) {
+                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
+                dist_nueva = calculaDistancias(k, k - 1, k, viajes, local, visitante) + calculaDistancias(jornada, jornada, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
+            }
+            else {
+                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
+                dist_nueva = calculaDistancias(k, k - 1, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
+            }
+            
+            if (dist_actual - dist_nueva > max) {
+                max = dist_actual - dist_nueva;
+                j_partido = k;
+            }
+        }
+    }
+
+    return max;
+}
+
+
+void cambiaJornadas(int k1, int k2, vector<vector<int>>& viajes, int local, int visitante) {
+    viajes[local][k1] = visitante;
+    viajes[local][k2] = local;
+    viajes[visitante][k1] = visitante;
+    viajes[visitante][k2] = local;
+}
+
+int calculaRival(const vector<vector<int>> viajes, int jornada, int rival) {
+    bool encontrado = false;
+    int ind = -1;
+    for (int i = 0; i < N && !encontrado; i++) {
+        if (viajes[i][jornada] == rival && i != rival) {
+            ind = i;
+            encontrado = true;
+        }
+    }
+
+    return ind;
+}
+
+
+void imprimeCalendario(const vector<vector<int>> viajes) {
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {
+        cout << "Jornada " << k + 1 << ":" << endl;
+        for (int i = 0; i < N; i++) {
+            if (viajes[i][k] == i) {
+                int rival = calculaRival(viajes, k, i);
+                cout << equipos[i].nombre << " vs " << equipos[rival].nombre << endl;
+            }
+        }
+
+        cout << "----------------------" << endl;
     }
 }
 
@@ -155,7 +229,7 @@ int main() {
 
 
         //Restricción de partidos de la división
-       /* for (int i = 0; i < N; ++i) {
+        for (int i = 0; i < N; ++i) {
             for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
 
                 // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
@@ -238,7 +312,7 @@ int main() {
                 model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
         }
-        */
+
 
 
         // Restricción: Partidos contra los equipos de la conferencia contraria
@@ -260,7 +334,7 @@ int main() {
                 model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
         }
-
+        
 
 
         // Restricción: Cada equipo solo puede jugar un partido por jornada
@@ -340,53 +414,61 @@ int main() {
                 }
             }
 
-            cout << "Distancia inicial: " << distancia << endl;
-
-            int k1 = 0;
-            double diferencia = 0;
-            double distancia_inicial = 0;
-            double distancia_final = 0;
-            while (k1 < TOTAL_JORNADAS) {
-                int k2 = k1 + 1;
-                while (k2 < TOTAL_JORNADAS) {
-                    if (k1 - k2 == 1) {
-                        double d1 = calculaDistancias(k1, k1 - 1, k1 + 1, viajes);
-                        double d2 = calculaDistancias(k2, k2 - 1, k2 + 1, viajes);
-                        double d3 = calculaDistancias(k2, k1 - 1, k1 + 2, viajes);
-                        double d4 = calculaDistancias(k1, k2 - 2, k2 + 1, viajes);
-                        distancia_inicial = calculaDistancias(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias(k2, k2 - 1, k2 + 1, viajes);
-                        distancia_final = calculaDistancias(k2, k1 - 1, k1 + 2, viajes) + calculaDistancias(k1, k2 - 2, k2 + 1, viajes);
-                    }
-                    else {
-                        distancia_inicial = calculaDistancias(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias(k2, k2 - 1, k2 + 1, viajes);
-                        distancia_final = calculaDistancias(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias(k1, k2 - 1, k2 + 1, viajes);
-                    }
-                   
-
-                    if (distancia_final < distancia_inicial) {
-                        diferencia = distancia_inicial - distancia_final;
-                        distancia -= diferencia;
-                        cambiaJornadas(k1, k2, viajes);
-                        cout << "He cambiado la jornada " << k1 + 1 << " por la jornada " << k2 + 1 << "recortando " << diferencia << " millas" << endl;
-                        k1 = -1;
-                        break;
-                    }
-                    else {
-                        k2++;
-                    }
-                }
-                k1++;
+            for (int i = 0; i < N; i++) {
+                distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][11]];
             }
 
+            cout << "Distancia inicial: " << distancia << endl;
+
+            double diferencia = 0;
+            int i = 0;
+
+            while (i < N) {
+                int j = 0;
+                while (j < N) {
+                    if (i != j) {
+                        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                            if (viajes[i][k] == i && viajes[j][k] == i) {
+                                int cambio;
+                                diferencia = buscaPartido(viajes, i, j, k, cambio);
+                                if (cambio != -1) {
+                                    distancia -= diferencia;
+                                    cambiaJornadas(k, cambio, viajes, i, j);
+                                    cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
+                                    j = -1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    j++;
+                }
+                i++;
+            }
 
             cout << "Distancia final: " << distancia << endl;
+
+            double distancia2 = 0;
+            for (int i = 0; i < N; i++) {
+                for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                    distancia2 += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+                }
+            }
+
+            for (int i = 0; i < N; i++) {
+                distancia2 += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][11]];
+            }
+
+            cout << "Distancia final2: " << distancia2 << endl;
+
+            imprimeCalendario(viajes);
 
         }
         else {
             cout << "No se encontró una solución óptima." << std::endl;
         }
 
-        
+
 
     }
     catch (GRBException e) {
@@ -397,8 +479,8 @@ int main() {
     }
 
 
-    
-    
+
+
 
 
     return 0;
