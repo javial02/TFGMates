@@ -1,0 +1,14 @@
+Mejor distancia encontrada para T = 100, M = 1 y alpha = 0.95 : 1.61252e+06
+Mejor distancia encontrada para T = 100, M = 1 y alpha = 0.97 : 1.58194e+06
+Mejor distancia encontrada para T = 100, M = 1 y alpha = 0.99 : 1.56417e+06
+Mejor distancia encontrada para T = 100, M = 2 y alpha = 0.95 : 1.58935e+06
+Mejor distancia encontrada para T = 100, M = 2 y alpha = 0.97 : 1.55202e+06
+Mejor distancia encontrada para T = 100, M = 2 y alpha = 0.99 : 1.54565e+06
+Mejor distancia encontrada para T = 100, M = 3 y alpha = 0.95 : 1.56887e+06
+Mejor distancia encontrada para T = 100, M = 3 y alpha = 0.97 : 1.56101e+06
+Mejor distancia encontrada para T = 100, M = 3 y alpha = 0.99 : 1.55912e+06
+Mejor distancia encontrada para T = 100, M = 4 y alpha = 0.95 : 1.56013e+06
+Mejor distancia encontrada para T = 100, M = 4 y alpha = 0.97 : 1.56791e+06
+Mejor distancia encontrada para T = 100, M = 4 y alpha = 0.99 : 1.55256e+06
+Mejor distancia encontrada para T = 100, M = 5 y alpha = 0.95 : 1.55299e+06
+Mejor distancia encontrada para T = 100, M = 5 y alpha = 0.97 : 1.56132e+06

@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>  // Biblioteca para manejar archivos
 #include "gurobi_c++.h"
 
 using namespace std;
@@ -22,8 +23,8 @@ struct InfoEquipo {
     string division;							//División a la que pertenece el equipo
     vector<int> rivales_division;			    //Lista de rivales de su misma división
     vector<int> rivales_conf1;				    //Lista de rivales de su misma conferencia pero distinta division con los que juega 4 partidos
-    vector<int> rivales_conf2;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (2c y 1f)
     vector<int> rivales_conf3;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (1c y 2f)
+    vector<int> rivales_conf2;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (2c y 1f)
     vector<int> rivales_interconf;			    //Lista de rivales que no son de su conferencia
 };
 
@@ -101,6 +102,14 @@ vector<vector<double>> distanciasNBA = {
 int main() {
 
     try {
+        ofstream archivo("calendario.txt"); // Abre el archivo (lo crea si no existe)
+
+        if (!archivo) {  // Verifica si se abrió correctamente
+            cerr << "Error al abrir el archivo" << std::endl;
+            return 1;
+        }
+
+
         // Inicializar el entorno de Gurobi
         GRBEnv env = GRBEnv(true);
         env.set("LogFile", "nba_schedule.log");
@@ -194,7 +203,7 @@ int main() {
                 // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
                 GRBLinExpr partidosEnCasa = 0;
                 GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_conf2[j];
+                int rival = equipos[i].rivales_conf3[j];
 
                 for (int k = 0; k < TOTAL_JORNADAS; ++k) {
                     partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
@@ -215,7 +224,7 @@ int main() {
                 // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
                 GRBLinExpr partidosEnCasa = 0;
                 GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_conf3[j];
+                int rival = equipos[i].rivales_conf2[j];
 
                 for (int k = 0; k < TOTAL_JORNADAS; ++k) {
                     partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
@@ -285,6 +294,46 @@ int main() {
 
                 cout << "-----------------------------" << endl;
             }
+
+            vector<vector<int>> viajes;
+            bool encontrado;
+
+
+            for (int i = 0; i < N; i++) {
+                vector<int> recorrido;
+                for (int k = 0; k < TOTAL_JORNADAS; k++) {
+                    encontrado = false;
+                    for (int j = 0; j < N && !encontrado; j++) {
+                        if (i != j && x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            recorrido.push_back(i);
+                            encontrado = true;
+                        }
+                        else if (i != j && x[j][i][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            recorrido.push_back(j);
+                            encontrado = true;
+                        }
+                    }
+                }
+
+                viajes.push_back(recorrido);
+
+            }
+
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < TOTAL_JORNADAS; j++) {
+                    if (j != TOTAL_JORNADAS - 1) {
+                        archivo << viajes[i][j] << " ";
+                    }
+                    else {
+                        archivo << viajes[i][j] << "\n";
+                    }
+                    
+                }
+
+            }
+
+
+            archivo.close(); // Cierra el archivo
 
         }
         else {

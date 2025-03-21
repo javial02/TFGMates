@@ -4,9 +4,11 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <fstream>
-#include "gurobi_c++.h"
-
+#include <algorithm> 
+#include <random>    
+#include <ctime>
+#include <unordered_set>
+//#include "gurobi_c++.h"
 
 using namespace std;
 
@@ -19,7 +21,6 @@ const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 15;         //Número de equipos por conferencia
 const int TOTAL_JORNADAS = 82;                  //Número de jornadas
-const int NUM_DIVISIONES = 6;                   //Número de divisiones
 
 struct InfoEquipo {
     int id;                                     //Numeración de equipos
@@ -31,6 +32,11 @@ struct InfoEquipo {
     vector<int> rivales_conf2;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (2c y 1f)
     vector<int> rivales_conf3;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (1c y 2f)
     vector<int> rivales_interconf;			    //Lista de rivales que no son de su conferencia
+};
+
+struct Partido {
+    int local;
+    int visitante;
 };
 
 
@@ -101,188 +107,127 @@ vector<vector<double>> distanciasNBA = {
 };
 
 
-/*
-vector<InfoEquipo> equipos = {
-    {0, "Boston Celtics", "Este", "Atlántico", {1, 2, 3}, {8, 7, 5, 10, 12}, {9, 13}, {6, 11}, {}},
-    {1, "Brooklyn Nets", "Este", "Atlántico", {0, 2, 3}, {13, 6, 9, 10, 5, 11}, {8}, {7, 12}, {}},
-    {2, "Philadelphia 76ers", "Este", "Atlántico", {0, 1, 3}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8}, {}},
-    {3, "New York Knicks", "Este", "Atlántico", {0, 1, 2}, {7, 8, 11, 13, 6}, {5, 12}, {10, 9}, {}},
-};
+vector<vector<Partido>> crear_partidos() {
+    vector<vector<Partido>> partidos;
 
-vector<vector<double>> distanciasNBA = {
-    {0, 217.9, 309.3, 213.78},
-    {217.9, 0, 98.12, 5.45},
-    {309.3, 98.12, 0, 96.67},
-    {213.78, 5.45, 96.67, 0},
-};
-*/
+    for (int i = 0; i < N; i++) {
 
-double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes, int local, int visitante) {
-    double total_dist = 0;
-    if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
-        total_dist += distanciasNBA[viajes[local][kantes]][local] + distanciasNBA[local][viajes[local][kdespues]];
-        total_dist += distanciasNBA[viajes[visitante][kantes]][local] + distanciasNBA[local][viajes[visitante][kdespues]];
-    }
-    else if (kantes < 0) {
-        total_dist += distanciasNBA[local][viajes[local][kdespues]];
-        total_dist += distanciasNBA[local][viajes[visitante][kdespues]] + distanciasNBA[local][visitante];
-    }
-    else if (kdespues > TOTAL_JORNADAS - 1) {
-        total_dist += distanciasNBA[viajes[local][kantes]][local];
-        total_dist += distanciasNBA[viajes[visitante][kantes]][local] + distanciasNBA[local][visitante];
+        int p_local = 0;
+        int p_visitante = 0;
+        vector<Partido> p;
+        int rival;
+
+        for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
+            rival = equipos[i].rivales_division[j];
+            p.push_back({ i, rival });
+            p.push_back({ i, rival });
+            p.push_back({ rival, i });
+            p.push_back({ rival, i });
+            p_local += 2;
+            p_visitante += 2;
+        }
+
+        for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
+            rival = equipos[i].rivales_conf1[j];
+            p.push_back({ i, rival });
+            p.push_back({ i, rival });
+            p.push_back({ rival, i });
+            p.push_back({ rival, i });
+            p_local += 2;
+            p_visitante += 2;
+        }
+
+        for (int j = 0; j < NUM_RIVALES_CONF_2; j++) {
+            rival = equipos[i].rivales_conf2[j];
+            p.push_back({ i, rival });
+            p.push_back({ i, rival });
+            p.push_back({ rival, i });
+            p_local += 2;
+            p_visitante += 1;
+        }
+
+        for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
+            rival = equipos[i].rivales_conf3[j];
+            p.push_back({ i, rival });
+            p.push_back({ rival, i });
+            p.push_back({ rival, i });
+            p_local += 1;
+            p_visitante += 2;
+        }
+
+        for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
+            rival = equipos[i].rivales_interconf[j];
+            p.push_back({ i, rival });
+            p.push_back({ rival, i });
+            p_local += 1;
+            p_visitante += 1;
+        }
+
+        cout << equipos[i].nombre << "-> P.Local: " << p_local << " - P.Visitante: " << p_visitante << endl;
+        partidos.push_back(p);
     }
 
-    return total_dist;
+    return partidos;
 }
 
-double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante, int jornada, int & j_partido) {
-    j_partido = -1;
-    double dist_nueva = 0;
-    double dist_actual = 0;
-    double max = 0;
-    for (int k = 0; k < TOTAL_JORNADAS; k++) {
-        if (viajes[visitante][k] == visitante && viajes[local][k] == visitante) {
-            if (k - jornada == 1) {
-                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
-                dist_nueva = calculaDistancias(k, k, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
-            }
-            else if (k - jornada == -1) {
-                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
-                dist_nueva = calculaDistancias(k, k - 1, k, viajes, local, visitante) + calculaDistancias(jornada, jornada, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
-            }
-            else {
-                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
-                dist_nueva = calculaDistancias(k, k - 1, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
-            }
-            
-            if (dist_actual - dist_nueva > max) {
-                max = dist_actual - dist_nueva;
-                j_partido = k;
+
+vector<vector<Partido>> asignar_jornadas(vector<vector<Partido>> partidos) {
+    vector<vector<Partido>> calendario(TOTAL_JORNADAS);
+
+    vector<Partido> p_unicos;
+    //partidos unicos, es decir, solo añadimos los partidos de local de todos los equipos para no repetir
+    for (int i = 0; i < N; i++) {
+        for (auto& p : partidos[i]) {
+            if (p.local == i) {
+                p_unicos.push_back(p);
             }
         }
     }
 
-    return max;
-}
+    int count_no_asignados = 0;
+    do {
+        //mezclamos los partidos para que haya aleatoriedad
+        shuffle(p_unicos.begin(), p_unicos.end(), default_random_engine(time(0)));
 
+        //set para llevar la cuenta de los equipos que ya hemos asignado en cada jornada
+        vector<unordered_set<int>> equipos_asignados(TOTAL_JORNADAS);
+        count_no_asignados = 0;
+        int index = 0;
+        for (auto& p : p_unicos) {
+            bool asignado = false;
 
-void cambiaJornadas(int k1, int k2, vector<vector<int>>& viajes, int local, int visitante) {
-    viajes[local][k1] = visitante;
-    viajes[local][k2] = local;
-    viajes[visitante][k1] = visitante;
-    viajes[visitante][k2] = local;
-}
-
-int calculaRival(const vector<vector<int>> viajes, int jornada, int rival) {
-    bool encontrado = false;
-    int ind = -1;
-    for (int i = 0; i < N && !encontrado; i++) {
-        if (viajes[i][jornada] == rival && i != rival) {
-            ind = i;
-            encontrado = true;
-        }
-    }
-
-    return ind;
-}
-
-
-void imprimeCalendario(const vector<vector<int>> viajes) {
-    for (int k = 0; k < TOTAL_JORNADAS; k++) {
-        cout << "Jornada " << k + 1 << ":" << endl;
-        for (int i = 0; i < N; i++) {
-            if (viajes[i][k] == i) {
-                int rival = calculaRival(viajes, k, i);
-                cout << equipos[i].nombre << " vs " << equipos[rival].nombre << endl;
+            for (int i = 0; i < TOTAL_JORNADAS; i++) {
+                int k = (index + i) % TOTAL_JORNADAS;
+                if (!equipos_asignados[k].count(p.local) && !equipos_asignados[k].count(p.visitante)) {
+                    calendario[k].push_back(p);
+                    equipos_asignados[k].insert(p.local);
+                    equipos_asignados[k].insert(p.visitante);
+                    asignado = true;
+                    break;
+                }
             }
+
+            if (!asignado) {
+                //cout << "No se ha podido asignar el partido entre " << p.local << " vs " << p.visitante << endl;
+                count_no_asignados++;
+            }
+
+            index = (index + 1) % TOTAL_JORNADAS;
         }
 
-        cout << "----------------------" << endl;
-    }
+        cout << "Numero de partidos no asignados: " << count_no_asignados << endl;
+
+    } while (count_no_asignados != 0);
+    
+
+    return calendario;
+
 }
-
-
-
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
-
-    if (!archivo) { // Verifica si el archivo se abrió correctamente
-        cerr << "Error al abrir el archivo" << std::endl;
-        return 1;
-    }
-
-    vector<vector<int>> viajes;
-    for (int i = 0; i < N; i++) {
-        vector<int> recorrido;
-        int n;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            archivo >> n;
-            recorrido.push_back(n);
-        }
-        viajes.push_back(recorrido);
-    }
-
-    archivo.close(); // Cierra el archivo
-
-
-    double distancia = 0;
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
-        }
-    }
-
-    for (int i = 0; i < N; i++) {
-        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
-    }
-
-    cout << "Distancia inicial: " << distancia << endl;
-
-    double diferencia = 0;
-    int i = 0;
-
-    while (i < N) {
-        int j = 0;
-        while (j < N) {
-            if (i != j) {
-                for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-                    if (viajes[i][k] == i && viajes[j][k] == i) {
-                        int cambio;
-                        diferencia = buscaPartido(viajes, i, j, k, cambio);
-                        if (cambio != -1) {
-                            distancia -= diferencia;
-                            cambiaJornadas(k, cambio, viajes, i, j);
-                            cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
-                            j = -1;
-                            break;
-                        }
-                    }
-                }
-            }
-            j++;
-        }
-        i++;
-    }
-
-    cout << "Distancia final: " << distancia << endl;
-
-    double distancia2 = 0;
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-            distancia2 += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
-        }
-    }
-
-    for (int i = 0; i < N; i++) {
-        distancia2 += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
-    }
-
-    cout << "Distancia final2: " << distancia2 << endl;
-
-
-
+    vector<vector<Partido>> partidos = crear_partidos();
+    vector<vector<Partido>> calendario = asignar_jornadas(partidos);
     return 0;
 }
 
