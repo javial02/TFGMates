@@ -103,23 +103,6 @@ vector<vector<double>> distanciasNBA = {
     {2651.26, 2429.33, 2345.09, 2410.02, 2243.44, 1754.12, 1706.17, 2013.85, 2006.03, 1829.15, 2090.87, 2302.2, 2134.7, 1846, 2358.36, 959.81, 1645.74, 659.75, 863.56, 1334.76, 1521.16, 1424.6, 984.45, 1064.58, 1177.05, 373.52, 373.52, 755.3, 736.92, 0}
 };
 
-
-/*
-vector<InfoEquipo> equipos = {
-    {0, "Boston Celtics", "Este", "Atlántico", {1, 2, 3}, {8, 7, 5, 10, 12}, {9, 13}, {6, 11}, {}},
-    {1, "Brooklyn Nets", "Este", "Atlántico", {0, 2, 3}, {13, 6, 9, 10, 5, 11}, {8}, {7, 12}, {}},
-    {2, "Philadelphia 76ers", "Este", "Atlántico", {0, 1, 3}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8}, {}},
-    {3, "New York Knicks", "Este", "Atlántico", {0, 1, 2}, {7, 8, 11, 13, 6}, {5, 12}, {10, 9}, {}},
-};
-
-vector<vector<double>> distanciasNBA = {
-    {0, 217.9, 309.3, 213.78},
-    {217.9, 0, 98.12, 5.45},
-    {309.3, 98.12, 0, 96.67},
-    {213.78, 5.45, 96.67, 0},
-};
-*/
-
 double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes, int local, int visitante) {
     double total_dist = 0;
     if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
@@ -168,30 +151,6 @@ double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante,
     return max;
 }
 
-double calculaDistancias2(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
-    double total_dist = 0;
-    for (int i = 0; i < N; i++) {
-        if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
-        }
-        else if (kantes < 0) {
-            total_dist += distanciasNBA[viajes[i][k]][viajes[i][kdespues]] + distanciasNBA[viajes[i][k]][i];
-        }
-        else if (kdespues > TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][i];
-        }
-    }
-
-    return total_dist;
-}
-
-void cambiaJornadas2(int k1, int k2, vector<vector<int>>& viajes) {
-    for (int i = 0; i < N; i++) {
-        int aux = viajes[i][k1];
-        viajes[i][k1] = viajes[i][k2];
-        viajes[i][k2] = aux;
-    }
-}
 
 
 void cambiaJornadas(int k1, int k2, vector<vector<int>>& viajes, int local, int visitante) {
@@ -254,51 +213,8 @@ int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
     return jornada;
 }
 
+void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M, double alpha) {
 
-
-
-int main() {
-
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
-
-    if (!archivo) { // Verifica si el archivo se abrió correctamente
-        cerr << "Error al abrir el archivo" << std::endl;
-        return 1;
-    }
-
-    vector<vector<int>> viajes;
-    for (int i = 0; i < N; i++) {
-        vector<int> recorrido;
-        int n;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            archivo >> n;
-            recorrido.push_back(n);
-        }
-        viajes.push_back(recorrido);
-    }
-
-    archivo.close(); // Cierra el archivo
-
-    //-----------------Distancia que genera el modelo--------------------------
-    double distancia = 0;
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
-        }
-    }
-
-    for (int i = 0; i < N; i++) {
-        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
-    }
-
-    cout << "Distancia inicial dada por el modelo: " << distancia << endl;
-
-
-
-    double t_inicial = 100;
-    double t_minima = 0.01;
-    double alpha = 0.99;
-    int M = 3;
     double distancia_mejor = distancia;
     vector<vector<int>> mejor_calendario;
 
@@ -333,7 +249,7 @@ int main() {
                 if (viajes[e2][k] == e2 && viajes[e1][k] == e2) {
                     if (k - jornada == 1) {
                         dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias(k, k - 1, k + 1, viajes, e2, e1);
-                        dist_nueva = calculaDistancias(k, k, k + 1, viajes, e1,e2) + calculaDistancias(jornada, jornada - 1, jornada, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+                        dist_nueva = calculaDistancias(k, k, k + 1, viajes, e1, e2) + calculaDistancias(jornada, jornada - 1, jornada, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
                     }
                     else if (k - jornada == -1) {
                         dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias(k, k - 1, k + 1, viajes, e2, e1);
@@ -391,8 +307,87 @@ int main() {
         t_inicial *= alpha;
 
     }
+}
 
-    cout << "Mejor distancia encontrada: " << distancia_mejor << endl;
+
+
+
+int main() {
+
+    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+
+    if (!archivo) { // Verifica si el archivo se abrió correctamente
+        cerr << "Error al abrir el archivo" << std::endl;
+        return 1;
+    }
+
+    vector<vector<int>> viajes;
+    for (int i = 0; i < N; i++) {
+        vector<int> recorrido;
+        int n;
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            archivo >> n;
+            recorrido.push_back(n);
+        }
+        viajes.push_back(recorrido);
+    }
+
+    archivo.close(); // Cierra el archivo
+
+    //-----------------Distancia que genera el modelo--------------------------
+    double distancia = 0;
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+        }
+    }
+
+    for (int i = 0; i < N; i++) {
+        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
+    }
+
+    cout << "Distancia inicial dada por el modelo: " << distancia << endl;
+
+    vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
+    double dist_inicial = distancia;
+
+    vector<vector<int>> mejor_calendario;
+    double dist_mejor = distancia;
+
+    double t_inicial;
+    double t_minimo;
+    int M;
+    double alpha;
+
+    temple_simulado(viajes, distancia, t_inicial, t_minimo, M, alpha);
+
+
+    if (distancia < dist_mejor) {
+        dist_mejor = distancia;
+        mejor_calendario = copiar_calendario(viajes);
+    }
+
+    distancia = dist_inicial;
+    viajes = copiar_calendario(calendario_inicial);
+
+
+    cout << "Mejor distancia encontrada: " << dist_mejor << endl;
+
+    ofstream archivo2("resultados.txt"); // Abre el archivo en modo lectura
+
+    if (!archivo) { // Verifica si el archivo se abrió correctamente
+        cerr << "Error al abrir el archivo" << std::endl;
+        return 1;
+    }
+
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            archivo2 << mejor_calendario[i][k] << " ";
+        }
+        archivo2 << endl;
+    }
+
+    archivo2.close(); // Cierra el archivo
 
 
     return 0;
