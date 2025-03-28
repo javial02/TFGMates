@@ -180,18 +180,14 @@ void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_in
     double distancia_nueva = 0;
     double distancia_inicial;
     double distancia_final;
-    int count = 0;
     while (t_inicial > t_minima) {
         if (t_inicial < 60 && t_inicial > 25) {
-            M = 2;
+            M = M/2;
         }
         else if (t_inicial < 25) {
             M = 1;
         }
         for (int i = 0; i < M; i++) {
-
-            cout << count << endl;
-            count++;
             int k1 = rand() % TOTAL_JORNADAS;
             int k2 = rand() % TOTAL_JORNADAS;
             while (k1 == k2) {
@@ -257,19 +253,23 @@ void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_in
             }
 
 
-            cout << "Distancia tras cambios de jornada: " << distancia << endl;
+            //cout << "Distancia tras cambios de jornada: " << distancia << endl;
 
             if (distancia < distancia_mejor) {
                 distancia_mejor = distancia;
-                mejor_calendario = copiar_calendario(viajes);
+                //mejor_calendario = copiar_calendario(viajes);
             }
 
         }
 
 
         t_inicial *= alpha;
+        //cout << t_inicial << endl;
 
     }
+
+    distancia = distancia_mejor;
+    //viajes = copiar_calendario(mejor_calendario);
 }
 
 
@@ -317,38 +317,40 @@ int main() {
     vector<vector<int>> mejor_calendario;
     double dist_mejor = distancia;
 
-    double t_inicial;
-    double t_minimo;
-    int M;
-    double alpha;
+    vector<double> t = { 50, 100};
+    //double t_inicial = 100;
+    double t_minimo = 0.01;
+    vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
+    vector<double> alphas = { 0.90, 0.95, 0.99 };
 
-    temple_simulado(viajes, distancia, t_inicial, t_minimo, M, alpha);
-
-
-    if (distancia < dist_mejor) {
-        dist_mejor = distancia;
-        mejor_calendario = copiar_calendario(viajes);
-    }
-
-    distancia = dist_inicial;
-    viajes = copiar_calendario(calendario_inicial);
-   
-
-    cout << "Mejor distancia encontrada: " << dist_mejor << endl;
-
-    ofstream archivo2("resultados.txt"); // Abre el archivo en modo lectura
+    //ofstream archivo2("resultados_ts_t2.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
         return 1;
     }
 
-    for (int i = 0; i < N; i++) {
+    for (double t_inicial : t) {
+        for (int M : Ms) {
+            for (double alpha : alphas) {
+                temple_simulado(viajes, distancia, t_inicial, t_minimo, M, alpha);
+                archivo2 << "T = " << t_inicial << ", M = " << M << ", alpha = " << alpha << " -> Mejor Distancia: " << distancia << endl;
+                cout << "T = " << t_inicial << ", M = " << M << ", alpha = " << alpha << " -> Mejor Distancia: " << distancia << endl;
+                viajes = copiar_calendario(calendario_inicial);
+                distancia = dist_inicial;
+            }
+        }
+    }
+   
+
+    
+
+    /*for (int i = 0; i < N; i++) {
         for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            archivo2 << mejor_calendario[i][k] << " ";
+            archivo2 << viajes[i][k] << " ";
         }
         archivo2 << endl;
-    }
+    }*/
 
     archivo2.close(); // Cierra el archivo
 

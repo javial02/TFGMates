@@ -150,8 +150,7 @@
     <ClInclude Include="..\..\..\..\win64\include\gurobi_c++.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CalendarioNBA_ts_t2.cpp" />
-    <ClCompile Include="CalendarioNBA_ts_t4.cpp" />
+    <ClCompile Include="CalendarioNBA_VNS_t4.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
