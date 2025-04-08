@@ -107,14 +107,15 @@ vector<vector<double>> distanciasNBA = {
 double calculaDistancias2(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
     double total_dist = 0;
     for (int i = 0; i < N; i++) {
+        int equipo = viajes[i][k];
         if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
+            total_dist += distanciasNBA[viajes[i][kantes]][equipo] + distanciasNBA[equipo][viajes[i][kdespues]];
         }
         else if (kantes < 0) {
-            total_dist += distanciasNBA[viajes[i][k]][viajes[i][kdespues]] + distanciasNBA[viajes[i][k]][i];
+            total_dist += distanciasNBA[equipo][viajes[i][kdespues]] + distanciasNBA[equipo][i];
         }
         else if (kdespues > TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][i];
+            total_dist += distanciasNBA[viajes[i][kantes]][equipo] + distanciasNBA[equipo][i];
         }
     }
 
@@ -122,10 +123,8 @@ double calculaDistancias2(int k, int kantes, int kdespues, const vector<vector<i
 }
 
 void cambiaJornadas2(int k1, int k2, vector<vector<int>>& viajes) {
-    for (int i = 0; i < N; i++) {
-        int aux = viajes[i][k1];
-        viajes[i][k1] = viajes[i][k2];
-        viajes[i][k2] = aux;
+    for (auto& equipo : viajes) {
+        swap(equipo[k1], equipo[k2]);
     }
 }
 
@@ -159,23 +158,11 @@ void imprimeCalendario(const vector<vector<int>> viajes) {
 }
 
 vector<vector<int>> copiar_calendario(const vector<vector<int>> nuevo) {
-    vector<vector<int>> copia;
-    for (int i = 0; i < N; i++) {
-        vector<int> recorrido;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            int aux = nuevo[i][k];
-            recorrido.push_back(aux);
-        }
-        copia.push_back(recorrido);
-    }
-    return copia;
+    return nuevo;
 }
 
 
 void cambiaJornadast2(vector<vector<int>>& viajes, double & distancia) {
-    double distancia_nueva = 0;
-    double distancia_inicial = 0;
-    double distancia_final = 0;
 
     int k1 = rand() % TOTAL_JORNADAS;
     int k2 = rand() % TOTAL_JORNADAS;
@@ -183,31 +170,21 @@ void cambiaJornadast2(vector<vector<int>>& viajes, double & distancia) {
         k2 = rand() % TOTAL_JORNADAS;
     }
 
-    if (k1 < k2) {
-        if (k2 - k1 == 1) {
-            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
-            distancia_final = calculaDistancias2(k2, k1 - 1, k1, viajes) + calculaDistancias2(k1, k2, k2 + 1, viajes);
-        }
-        else {
-            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
-            distancia_final = calculaDistancias2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k1, k2 - 1, k2 + 1, viajes);
-        }
+    if (k1 > k2) 
+        swap(k1, k2);
+
+    double distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
+    double distancia_final;
+    if (k2 - k1 == 1) {
+        distancia_final = calculaDistancias2(k2, k1 - 1, k1, viajes) + calculaDistancias2(k1, k2, k2 + 1, viajes);
     }
     else {
-        if (k1 - k2 == 1) {
-            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
-            distancia_final = calculaDistancias2(k1, k2 - 1, k2, viajes) + calculaDistancias2(k2, k1, k1 + 1, viajes);
-        }
-        else {
-            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
-            distancia_final = calculaDistancias2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k1, k2 - 1, k2 + 1, viajes);
-        }
-
+        distancia_final = calculaDistancias2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k1, k2 - 1, k2 + 1, viajes);
     }
 
+
     cambiaJornadas2(k1, k2, viajes);
-    distancia_nueva = distancia_final - distancia_inicial;
-    distancia += distancia_nueva;
+    distancia += (distancia_final - distancia_inicial);
 
 }
 
@@ -225,20 +202,10 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
         while (k <= 3) {
             vector<vector<int>> nuevoCalendario = copiar_calendario(mejor_calendario);
             distancia = distancia_mejor;
-            if (k == 1) {
-                for (int i = 0; i < k1; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);
-                }   
-            }
-            else if (k == 2) {
-                for (int i = 0; i < k2; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);
-                }
-            }
-            else {
-                for (int i = 0; i < k3; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);
-                }
+
+            int cambios = (k == 1) ? k1 : (k == 2) ? k2 : k3;
+            for (int i = 0; i < cambios; i++) {
+                cambiaJornadast2(nuevoCalendario, distancia);
             }
 
             int j1 = 0;
@@ -249,12 +216,12 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                 int j2 = j1 + 1;
                 while (j2 < TOTAL_JORNADAS) {
                     if (j2 - j1 == 1) {
-                        distancia_inicial = calculaDistancias2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias2(j2, j2 - 1, j2 + 1, viajes);
-                        distancia_final = calculaDistancias2(j2, j1 - 1, j1, viajes) + calculaDistancias2(j1, j2, j2 + 1, viajes);
+                        distancia_inicial = calculaDistancias2(j1, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias2(j2, j2 - 1, j2 + 1, nuevoCalendario);
+                        distancia_final = calculaDistancias2(j2, j1 - 1, j1, nuevoCalendario) + calculaDistancias2(j1, j2, j2 + 1, nuevoCalendario);
                     }
                     else {
-                        distancia_inicial = calculaDistancias2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias2(j2, j2 - 1, j2 + 1, viajes);
-                        distancia_final = calculaDistancias2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias2(j1, j2 - 1, j2 + 1, viajes);
+                        distancia_inicial = calculaDistancias2(j1, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias2(j2, j2 - 1, j2 + 1, nuevoCalendario);
+                        distancia_final = calculaDistancias2(j2, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias2(j1, j2 - 1, j2 + 1, nuevoCalendario);
                     }
 
 
@@ -262,7 +229,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                         diferencia = distancia_inicial - distancia_final;
 
                         distancia -= diferencia;
-                        cambiaJornadas2(j1, j2, viajes);
+                        cambiaJornadas2(j1, j2, nuevoCalendario);
                         //cout << "He cambiado la jornada " << j1 + 1 << " por la jornada " << j2 + 1 << " recortando " << diferencia << " millas" << endl;
                         j1 = -1;
                         break;
@@ -348,8 +315,8 @@ int main() {
     int k2 = 3;
     int k3 = 4;
 
-    vector<int> iteraciones = { 100, 200, 400, 800, 1000 };
-    vector<int> limites = { 10, 50 };
+    vector<int> iteraciones = { 100};
+    vector<int> limites = { 10};
 
     
 

@@ -189,16 +189,7 @@ void imprimeCalendario(const vector<vector<int>> viajes) {
 }
 
 vector<vector<int>> copiar_calendario(const vector<vector<int>> nuevo) {
-    vector<vector<int>> copia;
-    for (int i = 0; i < N; i++) {
-        vector<int> recorrido;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            int aux = nuevo[i][k];
-            recorrido.push_back(aux);
-        }
-        copia.push_back(recorrido);
-    }
-    return copia;
+    return nuevo;
 }
 
 int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
@@ -292,12 +283,12 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                 while (j < N) {
                     if (i != j) {
                         for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-                            if (viajes[i][k] == i && viajes[j][k] == i) {
+                            if (nuevoCalendario[i][k] == i && nuevoCalendario[j][k] == i) {
                                 int cambio;
-                                diferencia = buscaPartido(viajes, i, j, k, cambio);
+                                diferencia = buscaPartido(nuevoCalendario, i, j, k, cambio);
                                 if (cambio != -1) {
                                     distancia -= diferencia;
-                                    cambiaJornadas(k, cambio, viajes, i, j);
+                                    cambiaJornadas(k, cambio, nuevoCalendario, i, j);
                                     //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
                                     j = -1;
                                     break;
@@ -373,21 +364,21 @@ int main() {
     double dist_mejor = distancia;
 
 
-    /*ofstream archivo2("resultados_vns_t4.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("resultados_vns_t4.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
         return 1;
-    }*/
+    }
 
     int max_iter = 100;
-    int lim_sin_mej = 10;
+    int lim_sin_mej = 20;
     int k1 = 2;
     int k2 = 3;
-    int k3 = 4;
+    int k3 = 5;
 
-    vector<int> iteraciones = { 100, 200, 400, 800, 1000 };
-    vector<int> limites = { 10, 50 };
+    vector<int> iteraciones = {1000};
+    vector<int> limites = { 50};
 
 
 
@@ -395,28 +386,48 @@ int main() {
     //cout << distancia << endl;
 
     /*
-    * for (int max_iter : iteraciones) {
+    for (int max_iter : iteraciones) {
         for (int lim_sin_mej : limites) {
             VNS(viajes, distancia, max_iter, lim_sin_mej, k1, k2, k3);
             archivo2 << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
             cout << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
+            double distancia2 = 0;
+            for (int i = 0; i < N; i++) {
+                for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                    distancia2 += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+                }
+            }
+
+            for (int i = 0; i < N; i++) {
+                distancia2 += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
+            }
+
+            cout << distancia2 << endl;
             viajes = copiar_calendario(calendario_inicial);
             distancia = dist_inicial;
         }
     }
     */
 
-    VNS(viajes, distancia, 800, 50, k1, k2, k3);
+    
+    VNS(viajes, distancia, max_iter, lim_sin_mej, k1, k2, k3);
 
     cout << distancia << endl;
 
-    imprimeCalendario(viajes);
+    //imprimeCalendario(viajes);
     
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            archivo2 << viajes[i][k] << " ";
+        }
+        archivo2 << endl;
+    }
 
 
 
 
-    //archivo2.close(); // Cierra el archivo
+
+    archivo2.close(); // Cierra el archivo
 
 
     return 0;
