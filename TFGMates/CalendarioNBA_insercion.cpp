@@ -310,7 +310,7 @@ int buscaRival(int jornada, int rival, vector<vector<int>> viajes) {
     return -1;
 }
 
-void muestraDist(const vector<vector<int>>& viajes) {
+vector<vector<int>> muestraDist(const vector<vector<int>>& viajes) {
     vector<vector<int>> viajes_final;
     for (int i = 0; i < N; i++) {
         vector<int> v;
@@ -335,6 +335,42 @@ void muestraDist(const vector<vector<int>>& viajes) {
     }
 
     cout << "Distancia final: " << distancia_final << endl;
+
+    return viajes_final;
+}
+
+double nuevaDist(const vector<vector<int>>& viajes, int local, int visitante) {
+    vector<vector<int>> viajes_final;
+    vector<int> v;
+    for (int k = 0; k < viajes[local].size(); k++) {
+        if (viajes[local][k] != -1) {
+            v.push_back(viajes[local][k]);
+        }
+    }
+    viajes_final.push_back(v);
+    vector<int> v2;
+    for (int k = 0; k < viajes[visitante].size(); k++) {
+        if (viajes[visitante][k] != -1) {
+            v2.push_back(viajes[visitante][k]);
+        }
+    }
+    viajes_final.push_back(v2);
+
+
+    double distancia_final = 0;
+    for (int i = 0; i < 2; i++) {
+        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+            distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
+        }
+    }
+
+    distancia_final += distanciasNBA[local][viajes_final[0][0]] + distanciasNBA[local][viajes_final[0][81]];
+    distancia_final += distanciasNBA[visitante][viajes_final[1][0]] + distanciasNBA[visitante][viajes_final[1][81]];
+    
+
+    //cout << "Distancia final: " << distancia_final << endl;
+
+    return distancia_final;
 }
 
 
@@ -455,34 +491,31 @@ int main() {
                     
                     if (k2 != k) {
                         if (rivales[local][k2] == -1 && rivales[visitante][k2] == -1 && hayPartido(viajes, k2, k, local, visitante))  {
-                            if (insertaPartido(viajes, local, visitante, k2, k, distancia_inicial, distancia_hipotetica, distancia)) {
+                            double distancia_antigua = nuevaDist(viajes, local, visitante);
+                            actualiza_moviendo(viajes, rivales, k2, k, local, visitante);
+                            double distancia_nueva = nuevaDist(viajes,local,visitante);
+                            if (distancia_nueva < distancia_antigua) {
+                                distancia += distancia_nueva - distancia_antigua;
+                                mejorado = true;
+                                break;
+                            }
+                            else {
+                                actualiza_moviendo(viajes, rivales, k, k2, local, visitante);
+                            }
+                            /*if (insertaPartido(viajes, local, visitante, k2, k, distancia_inicial, distancia_hipotetica, distancia)) {
                                 //cout << "------------------------------------------------" << endl;
                                 //cout << "K = " << k << " K2 = " << k2 << endl;
                                 muestraDist(viajes);
-                                /*for (int k1 = 0; k1 < viajes[0].size(); k1++) {
-                                    cout << viajes[local][k1] << " ";
-                                }
-                                cout << endl;
-                                for (int k1 = 0; k1 < viajes[0].size(); k1++) {
-                                    cout << viajes[visitante][k1] << " ";
-                                }
-                                cout << endl;*/
+                              
 
                                 cout << "---moviendo----" << endl;
                                 
                                 actualiza_moviendo(viajes, rivales, k2, k, local, visitante);
-                                /*for (int k1 = 0; k1 < viajes[0].size(); k1++) {
-                                    cout << viajes[local][k1] << " ";
-                                }
-                                cout << endl;
-                                for (int k1 = 0; k1 < viajes[0].size(); k1++) {
-                                    cout << viajes[visitante][k1] << " ";
-                                }
-                                cout << endl;*/
+                                
                                 muestraDist(viajes);
                                 mejorado = true;
                                 break;
-                            }
+                            }*/
                         }
                         if (rivales[local][k2] != -1 && rivales[visitante][k2] != -1 && NUM_JORNADAS < 163) {
                             if (hazHueco(viajes, local, visitante, k2, k, distancia_inicial, distancia_hipotetica, distancia)) {
@@ -583,6 +616,27 @@ int main() {
 
     cout << "Distancia final: " << distancia_final << endl;
 
+    /*ofstream archivo2("resultados_insercion.txt"); // Abre el archivo en modo lectura
+
+    if (!archivo2) { // Verifica si el archivo se abrió correctamente
+        cerr << "Error al abrir el archivo" << std::endl;
+        return 1;
+    }
+
+
+    vector<vector<int>> sol = muestraDist(viajes);
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            archivo2 << sol[i][k] << " ";
+        }
+        archivo2 << endl;
+    }
+
+
+
+
+    archivo2.close(); // Cierra el archivo
+    */
 
     
     return 0;
