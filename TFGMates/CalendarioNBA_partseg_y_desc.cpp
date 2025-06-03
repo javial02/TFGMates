@@ -1,6 +1,3 @@
-//EN ESTE MODELO NO SE ESTÁ CONTANDO CON LA DISTANCIA RECORRIDA DE LOS EQUIPOS VISITANTES EN LA PRIMERA JORNADA DE LA TEMPORADA.
-//SE DA POR HECHO DE QUE SE EMPIEZA A CONTAR A PARTIR DE LA JORNADA 1
-
 #include <vector>
 #include <string>
 #include <iostream>
@@ -35,40 +32,41 @@ struct InfoEquipo {
     vector<int> rivales_conf2;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (2c y 1f)
     vector<int> rivales_conf3;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (1c y 2f)
     vector<int> rivales_interconf;			    //Lista de rivales que no son de su conferencia
+    int partidos_jug;
 };
 
 
 vector<InfoEquipo> equipos = {
-    {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
-    {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {3,"New York Knicks", "Este", "Atlantico", {0, 1, 2, 4}, {7, 8, 11, 13, 6, 14}, {5, 12}, {10, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {4,"Toronto Raptors", "Este", "Atlantico", {0, 1, 2, 3}, {7, 8, 14, 12, 10, 9}, {6, 11}, {5, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {5,"Chicago Bulls", "Este", "Central", {6, 7, 8, 9}, {0, 2, 1, 13, 11, 10}, {4, 14}, {3, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
-    {6,"Indiana Pacers", "Este", "Central", {5, 7, 8, 9}, {2, 3, 1, 14, 12, 11}, {0, 10}, {4, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {7,"Cleveland Cavaliers", "Este", "Central", {5, 6, 8, 9}, {4, 0, 3, 10, 12, 14}, {1, 13}, {2, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {8,"Detroit Pistons", "Este", "Central", {5, 6, 7, 9}, {4, 0, 3, 10, 12, 13}, {2, 11}, {1, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {9,"Milwaukee Bucks", "Este", "Central", {5, 6, 7, 8}, {4, 2, 1, 14, 11, 13}, {3, 12}, {0, 10} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {10,"Charlotte Hornets", "Este", "Sudeste", {11, 12, 13, 14}, {4, 0, 1, 7, 8, 5}, {3, 9}, {2, 6} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {11,"Washington Wizards", "Este", "Sudeste", {10, 12, 13, 14}, {2, 3, 1, 6, 9, 5}, {0, 7}, {4, 8} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {12,"Orlando Magic", "Este", "Sudeste", {10, 11, 13, 14}, {4, 0, 2, 6, 7, 8}, {1, 5}, {3, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {13,"Atlanta Hawks", "Este", "Sudeste", {10, 11, 12, 14}, {2, 3, 1, 9, 8, 5}, {4, 6}, {0, 7} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {14,"Miami Heat", "Este", "Sudeste", {10, 11, 12, 13}, {4, 0, 3, 6, 7, 9}, {2, 8}, {1, 5} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {15,"Oklahoma City Thunder", "Oeste", "Noroeste", {16, 17, 18, 19}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {16,"Minnesota Timberwolves", "Oeste", "Noroeste", {15, 17, 18, 19}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {17,"Utah Jazz", "Oeste", "Noroeste", {15, 16, 18, 19}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {18,"Denver Nuggets", "Oeste", "Noroeste", {15, 16, 17, 19}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {19,"Portland Trail Blazers", "Oeste", "Noroeste", {15, 16, 17, 18}, {28, 25, 27, 22, 23, 20}, {29, 21}, {26, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {20,"New Orleans Pelicans", "Oeste", "Sudoeste", {21, 22, 23, 24}, {19, 15, 18, 28, 25, 29}, {17, 26}, {16, 27} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {21,"Memphis Grizzlies", "Oeste", "Sudoeste", {20, 22, 23, 24}, {15, 16, 17, 28, 27, 29}, {18, 25}, {19, 26} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {22,"San Antonio Spurs", "Oeste", "Sudoeste", {20, 21, 23, 24}, {19, 16, 17, 25, 26, 27}, {15, 28}, {18, 29} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {23,"Dallas Mavericks", "Oeste", "Sudoeste", {20, 21, 22, 24}, {19, 17, 18, 25, 26, 29}, {16, 27}, {15, 28} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {24,"Houston Rockets", "Oeste", "Sudoeste", {20, 21, 22, 23}, {15, 16, 18, 28, 26, 27}, {19, 29}, {17, 25} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {25,"Los Angeles Lakers", "Oeste", "Pacifico", {26, 27, 28, 29}, {19, 17, 18, 22, 23, 20}, {16, 24}, {15, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {26,"Los Angeles Clippers", "Oeste", "Pacifico", {25, 27, 28, 29}, {15, 17, 18, 24, 23, 22}, {19, 21}, {16, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {27,"Sacramento Kings", "Oeste", "Pacifico", {25, 26, 28, 29}, {19, 16, 17, 24, 22, 21}, {15, 20}, {18, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {28,"Golden State Warriors", "Oeste", "Pacifico", {25, 26, 27, 29}, {19, 15, 16, 21, 24, 20}, {18, 23}, {17, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {29,"Phoenix Suns", "Oeste", "Pacifico", {25, 26, 27, 28}, {15, 16, 18, 23, 20, 21}, {17, 22}, {19, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} }
+    {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0 },
+    {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {3,"New York Knicks", "Este", "Atlantico", {0, 1, 2, 4}, {7, 8, 11, 13, 6, 14}, {5, 12}, {10, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {4,"Toronto Raptors", "Este", "Atlantico", {0, 1, 2, 3}, {7, 8, 14, 12, 10, 9}, {6, 11}, {5, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {5,"Chicago Bulls", "Este", "Central", {6, 7, 8, 9}, {0, 2, 1, 13, 11, 10}, {4, 14}, {3, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0 },
+    {6,"Indiana Pacers", "Este", "Central", {5, 7, 8, 9}, {2, 3, 1, 14, 12, 11}, {0, 10}, {4, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} ,0 },
+    {7,"Cleveland Cavaliers", "Este", "Central", {5, 6, 8, 9}, {4, 0, 3, 10, 12, 14}, {1, 13}, {2, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} ,0 },
+    {8,"Detroit Pistons", "Este", "Central", {5, 6, 7, 9}, {4, 0, 3, 10, 12, 13}, {2, 11}, {1, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {9,"Milwaukee Bucks", "Este", "Central", {5, 6, 7, 8}, {4, 2, 1, 14, 11, 13}, {3, 12}, {0, 10} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {10,"Charlotte Hornets", "Este", "Sudeste", {11, 12, 13, 14}, {4, 0, 1, 7, 8, 5}, {3, 9}, {2, 6} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} ,0 },
+    {11,"Washington Wizards", "Este", "Sudeste", {10, 12, 13, 14}, {2, 3, 1, 6, 9, 5}, {0, 7}, {4, 8} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {12,"Orlando Magic", "Este", "Sudeste", {10, 11, 13, 14}, {4, 0, 2, 6, 7, 8}, {1, 5}, {3, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {13,"Atlanta Hawks", "Este", "Sudeste", {10, 11, 12, 14}, {2, 3, 1, 9, 8, 5}, {4, 6}, {0, 7} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {14,"Miami Heat", "Este", "Sudeste", {10, 11, 12, 13}, {4, 0, 3, 6, 7, 9}, {2, 8}, {1, 5} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {15,"Oklahoma City Thunder", "Oeste", "Noroeste", {16, 17, 18, 19}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {16,"Minnesota Timberwolves", "Oeste", "Noroeste", {15, 17, 18, 19}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {17,"Utah Jazz", "Oeste", "Noroeste", {15, 16, 18, 19}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {18,"Denver Nuggets", "Oeste", "Noroeste", {15, 16, 17, 19}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {19,"Portland Trail Blazers", "Oeste", "Noroeste", {15, 16, 17, 18}, {28, 25, 27, 22, 23, 20}, {29, 21}, {26, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {20,"New Orleans Pelicans", "Oeste", "Sudoeste", {21, 22, 23, 24}, {19, 15, 18, 28, 25, 29}, {17, 26}, {16, 27} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {21,"Memphis Grizzlies", "Oeste", "Sudoeste", {20, 22, 23, 24}, {15, 16, 17, 28, 27, 29}, {18, 25}, {19, 26} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {22,"San Antonio Spurs", "Oeste", "Sudoeste", {20, 21, 23, 24}, {19, 16, 17, 25, 26, 27}, {15, 28}, {18, 29} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {23,"Dallas Mavericks", "Oeste", "Sudoeste", {20, 21, 22, 24}, {19, 17, 18, 25, 26, 29}, {16, 27}, {15, 28} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {24,"Houston Rockets", "Oeste", "Sudoeste", {20, 21, 22, 23}, {15, 16, 18, 28, 26, 27}, {19, 29}, {17, 25} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {25,"Los Angeles Lakers", "Oeste", "Pacifico", {26, 27, 28, 29}, {19, 17, 18, 22, 23, 20}, {16, 24}, {15, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {26,"Los Angeles Clippers", "Oeste", "Pacifico", {25, 27, 28, 29}, {15, 17, 18, 24, 23, 22}, {19, 21}, {16, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {27,"Sacramento Kings", "Oeste", "Pacifico", {25, 26, 28, 29}, {19, 16, 17, 24, 22, 21}, {15, 20}, {18, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {28,"Golden State Warriors", "Oeste", "Pacifico", {25, 26, 27, 29}, {19, 15, 16, 21, 24, 20}, {18, 23}, {17, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {29,"Phoenix Suns", "Oeste", "Pacifico", {25, 26, 27, 28}, {15, 16, 18, 23, 20, 21}, {17, 22}, {19, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 }
 };
 
 vector<vector<double>> distanciasNBA = {
@@ -121,7 +119,7 @@ int partido_posterior(const vector<vector<int>>& viajes, int i, int jornada) {
 }
 
 int partido_anterior(const vector<vector<int>>& viajes, int i, int jornada) {
-    for (int k = jornada -1; k >= 0; k--) {
+    for (int k = jornada - 1; k >= 0; k--) {
         if (viajes[i][k] != -1) {
             return k;
         }
@@ -148,7 +146,7 @@ void actualiza_insertando(vector<vector<int>>& viajes, vector<vector<int>>& riva
     rivales[visitante][j_prev] = -1;
     viajes[local][j_prev] = -1;
     viajes[visitante][j_prev] = -1;
-    
+
     for (int i = 0; i < viajes.size(); i++) {
         rivales[i].push_back(-1);
         viajes[i].push_back(-1);
@@ -163,12 +161,12 @@ void actualiza_insertando(vector<vector<int>>& viajes, vector<vector<int>>& riva
         rivales[i][jornada + 1] = -1;
         viajes[i][jornada + 1] = -1;
     }
-    
-   
+
+
     rivales[local][jornada + 1] = visitante;
     rivales[visitante][jornada + 1] = local;
 
-    
+
     viajes[local][jornada + 1] = local;
     viajes[visitante][jornada + 1] = local;
 
@@ -195,7 +193,7 @@ bool insertaPartido(const vector<vector<int>>& viajes, int i, int rival, int k, 
         distancia_inicial_jornada += distanciasNBA[viajes[i][iant]][i];
         distancia_hipotetica_jornada += distanciasNBA[viajes[i][iant]][viajes[i][jornada]] + distanciasNBA[viajes[i][jornada]][i];
     }
-    else if(iant < 0){
+    else if (iant < 0) {
         distancia_inicial_jornada += distanciasNBA[i][viajes[i][ipost]];
         distancia_hipotetica_jornada += distanciasNBA[i][viajes[i][jornada]] + distanciasNBA[viajes[i][jornada]][viajes[i][ipost]];
     }
@@ -227,7 +225,7 @@ bool insertaPartido(const vector<vector<int>>& viajes, int i, int rival, int k, 
 
 }
 
-bool hazHueco(const vector<vector<int>>& viajes, int i, int rival, int k, int jornada, double distancia_inicial_jornada, double distancia_hipotetica_jornada, double & distancia) {
+bool hazHueco(const vector<vector<int>>& viajes, int i, int rival, int k, int jornada, double distancia_inicial_jornada, double distancia_hipotetica_jornada, double& distancia) {
     //cout << "aqui" << endl;
     int ipost = partido_posterior(viajes, i, k);
     int rpost = partido_posterior(viajes, rival, k);
@@ -237,22 +235,22 @@ bool hazHueco(const vector<vector<int>>& viajes, int i, int rival, int k, int jo
         distancia_inicial_jornada += distanciasNBA[viajes[i][k]][viajes[i][ipost]];
         distancia_hipotetica_jornada += distanciasNBA[viajes[i][k]][viajes[i][jornada]] + distanciasNBA[viajes[i][jornada]][viajes[i][ipost]];
     }
-    else if(ipost >= viajes[0].size()){
+    else if (ipost >= viajes[0].size()) {
         distancia_inicial_jornada += distanciasNBA[viajes[i][k]][i];
         distancia_hipotetica_jornada += distanciasNBA[viajes[i][k]][viajes[i][jornada]] + distanciasNBA[viajes[i][jornada]][i];
     }
-    
+
     if (rpost < viajes[0].size()) {
         distancia_inicial_jornada += distanciasNBA[viajes[rival][k]][viajes[rival][rpost]];
         distancia_hipotetica_jornada += distanciasNBA[viajes[rival][k]][viajes[rival][jornada]] + distanciasNBA[viajes[rival][jornada]][viajes[rival][rpost]];
 
     }
-    else if(rpost >= viajes[0].size()){
+    else if (rpost >= viajes[0].size()) {
         distancia_inicial_jornada += distanciasNBA[viajes[rival][k]][rival];
         distancia_hipotetica_jornada += distanciasNBA[viajes[rival][k]][viajes[rival][jornada]] + distanciasNBA[viajes[rival][jornada]][rival];
 
     }
-    
+
     if (distancia_hipotetica_jornada < distancia_inicial_jornada) {
         distancia += distancia_hipotetica_jornada - distancia_inicial_jornada;
         return true;
@@ -294,9 +292,6 @@ void distancias_iniciales(const vector<vector<int>>& viajes, int i, int rival, i
         distancia_inicial += distanciasNBA[viajes[rival][rant]][viajes[rival][k]] + distanciasNBA[viajes[rival][k]][rival];
         distancia_hipotetica += distanciasNBA[viajes[rival][rant]][rival];
     }
-
-   
-
 
 }
 
@@ -394,7 +389,7 @@ double nuevaDist(const vector<vector<int>>& viajes, int local, int visitante) {
 
     distancia_final += distanciasNBA[local][viajes_final[0][0]] + distanciasNBA[local][viajes_final[0][81]];
     distancia_final += distanciasNBA[visitante][viajes_final[1][0]] + distanciasNBA[visitante][viajes_final[1][81]];
-    
+
 
     //cout << "Distancia final: " << distancia_final << endl;
 
@@ -402,7 +397,7 @@ double nuevaDist(const vector<vector<int>>& viajes, int local, int visitante) {
 }
 
 
-bool hayPartido(const vector<vector<int>>& viajes, int k2, int k, int local, int visitante){
+bool hayPartido(const vector<vector<int>>& viajes, int k2, int k, int local, int visitante) {
 
     if (k2 > k) {
         for (int i = k + 1; i < k2; i++) {
@@ -428,14 +423,65 @@ bool hayPartido(const vector<vector<int>>& viajes, int k2, int k, int local, int
 
     return false;
 
+}
 
+int comprueba_si_partido(const vector<vector<int>>& viajes, int jornada, int equipo) {
+    bool izda = false;
+    bool dcha = false;
+    int count = 1;
+    for (int k = jornada + 1; k < viajes[equipo].size(); k++) {
+        if (viajes[equipo][k] == -1) {
+            count++;
+        }
+        else {
+            break;
+        }
+    }
 
+    for (int k = jornada - 1; k >0 ; k--) {
+        if (viajes[equipo][k] == -1) {
+            count++;
+        }
+        else {
+            break;
+        }
+    }
+
+    return count;
+}
+
+bool tieneTresPartidosSeguidos(const vector<vector<int>>& viajes, int i) {
+    int consecutivos = 0;
+    for (int d = 0; d < viajes[0].size(); ++d) {
+        if (viajes[i][d] != -1) {
+            consecutivos++;
+            if (consecutivos >= 3) return true;
+        }
+        else {
+            consecutivos = 0;
+        }
+    }
+    return false;
+}
+
+bool tieneDescansoExcesivo(const vector<vector<int>>& viajes, int i) {
+    int descanso = 0;
+    for (int d = 0; d < viajes[i].size(); ++d) {
+        if (viajes[i][d] == -1) {
+            descanso++;
+            if (descanso > 5) return true;
+        }
+        else {
+            descanso = 0;
+        }
+    }
+    return false;
 }
 
 
 int main() {
 
-    ifstream archivo("calendario_mejor.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("mejorado_calen.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -446,50 +492,32 @@ int main() {
     for (int i = 0; i < N; i++) {
         vector<int> recorrido;
         int n;
+        bool ok = true;
+        int count = 0;
         for (int k = 0; k < TOTAL_JORNADAS; k++) {
             archivo >> n;
             recorrido.push_back(n);
+            count++;
+            if (count == 2 && ok) {
+                recorrido.push_back(-1);
+                ok = !ok;
+                count = 0;
+            }
+            else if (count == 2 && !ok) {
+                recorrido.push_back(-1);
+                recorrido.push_back(-1);
+                recorrido.push_back(-1);
+
+                ok = !ok;
+                count = 0;
+            }
         }
         viajes.push_back(recorrido);
     }
 
     archivo.close(); // Cierra el archivo
 
-    //-----------------Distancia que genera el modelo--------------------------
-    double distancia = 0;
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
-        }
-    }
 
-    for (int i = 0; i < N; i++) {
-        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
-    }
-
-    cout << "Distancia inicial dada por el modelo: " << distancia << endl;
-
-    /*for (int i = 0; i < N; i++) {
-        cout << "Equipo: " << i << endl;
-        int counttotal = 0;
-        int countlocal = 0;
-        for (int k = 0; k < viajes[i].size(); k++) {
-            if (viajes[i][k] != -1) {
-                counttotal++;
-            }
-            if (viajes[i][k] == i) {
-                countlocal++;
-            }
-            cout << viajes[i][k] << " ";
-        }
-
-        cout << "Partidos totales: " << counttotal << "------ Partidos como local: " << countlocal << endl;
-        cout << endl;
-    }*/
-
-    
-    
-    
     vector<vector<int>> rivales(viajes.size(), vector<int>(viajes[0].size(), 0));
     for (int i = 0; i < viajes.size(); i++) {
         for (int k = 0; k < viajes[0].size(); k++) {
@@ -503,109 +531,39 @@ int main() {
         }
     }
 
+    int NUM_JORNADAS = 163;
+    double distanciaTotal = 0;
     
-    int NUM_JORNADAS = 82;
-    
-    for (int k = 0; k < NUM_JORNADAS; k++) {
-        for (int i = 0; i < N; i++) {
-            bool mejorado = false;
-            if (viajes[i][k] != -1) {                           //si juega partido en esa jornada
-                
-                int local = viajes[i][k];
-                int visitante = rivales[local][k];
-                double distancia_inicial = 0;
-                double distancia_hipotetica = 0;
-                
-                distancias_iniciales(viajes, local, visitante, k, distancia_inicial, distancia_hipotetica, NUM_JORNADAS);
-                for (int k2 = 0; k2 < NUM_JORNADAS; k2++) {     //recorremos todas las jornadas posibles. hay que comprobar que esos mismos equipos no jueguen en esa jornada, y en caso de que no haya ninguna opcion, crear una nueva
-                    
-                    if (k2 != k) {
-                        if (rivales[local][k2] == -1 && rivales[visitante][k2] == -1 && hayPartido(viajes, k2, k, local, visitante))  {
-                            double distancia_antigua = nuevaDist(viajes, local, visitante);
-                            actualiza_moviendo(viajes, rivales, k2, k, local, visitante);
-                            double distancia_nueva = nuevaDist(viajes,local,visitante);
-                            if (distancia_nueva < distancia_antigua) {
-                                distancia += distancia_nueva - distancia_antigua;
-                                mejorado = true;
-                                break;
-                            }
-                            else {
-                                actualiza_moviendo(viajes, rivales, k, k2, local, visitante);
-                            }
-                            
-                        }
-                        if (rivales[local][k2] != -1 && rivales[visitante][k2] != -1 && NUM_JORNADAS < 163) {
-                            if (hazHueco(viajes, local, visitante, k2, k, distancia_inicial, distancia_hipotetica, distancia)) {
-                                cout << "------------------------------------------------" << endl;
-                                muestraDist(viajes);
-                                cout << "----insertando---" << endl;
-
-                                NUM_JORNADAS++;
-                                mejorado = true;
-                                actualiza_insertando(viajes, rivales, k2, k, local, visitante);
-                                muestraDist(viajes);
-                                break;
-                            }
-                            
-                        }
-
-                    }
-                    
-                }
-            }
-            if (mejorado) {
-                cout << "Distancia: " << distancia << endl;
-                //cout << "--------------------------------------------------------" << endl;
-            }
-            
-        }
-    }
-
-   double distanciaTotal = 0;
 
     for (int i = 0; i < N; i++) {
         int k = 0;
-        int jornada = partido_posterior(viajes, i, k);
+        //int jornada = partido_posterior(viajes, i, k);
+        int jornada = viajes[i][k];
+        
         while (jornada == -1 && k < NUM_JORNADAS) {
             k++;
-            jornada = partido_posterior(viajes, i, k);
+            jornada = viajes[i][k];
         }
         
-        int prev = jornada;
-        //cout << prev << endl;
+        int prev = k;
+        //cout << prev << viajes[i][prev] << endl;
         distanciaTotal += distanciasNBA[i][viajes[i][prev]];
         jornada = partido_posterior(viajes, i, prev);
-        while (jornada < viajes[i].size() + 1) {
+        //cout << "aqui2" << endl;
+        while (jornada < viajes[i].size()) {
             distanciaTotal += distanciasNBA[viajes[i][prev]][viajes[i][jornada]];
             prev = jornada;
             //cout << prev << " " << jornada << endl;
             jornada = partido_posterior(viajes, i, prev);
             //cout << jornada << endl;
         }
-       //cout << "aqui" << endl;
+        //cout << "aqui" << endl;
         distanciaTotal += distanciasNBA[viajes[i][prev]][i];
+        //cout << "Equipo " << i << ": " << distanciaTotal << endl;
 
     }
 
     cout << distanciaTotal << endl;
-
-    for (int i = 0; i < N; i++) {
-        cout << "Equipo: " << i << endl;
-        int counttotal = 0;
-        int countlocal = 0;
-        for (int k = 0; k < NUM_JORNADAS; k++) {
-            if (viajes[i][k] != -1) {
-                counttotal++;
-            }
-            if (viajes[i][k] == i) {
-                countlocal++;
-            }
-            cout << viajes[i][k] << " ";
-        }
-        
-        cout << "Partidos totales: " << counttotal << "------ Partidos como local: " << countlocal << endl;
-        cout << endl;
-    }
 
     vector<vector<int>> viajes_final;
     for (int i = 0; i < N; i++) {
@@ -616,7 +574,7 @@ int main() {
             }
         }
         viajes_final.push_back(v);
-        cout << v.size() << endl;
+        //cout << v.size() << endl;
     }
 
 
@@ -625,15 +583,132 @@ int main() {
         for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
             distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
         }
+        distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
+        //cout << "Equipo " << i << ": " << distancia_final << endl;
     }
 
-    for (int i = 0; i < N; i++) {
-        distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
-    }
 
     cout << "Distancia final: " << distancia_final << endl;
 
-    ofstream archivo2("calendario_impreso_por_dias.txt");
+
+    for (int k = 0; k < viajes[0].size(); k++) {
+        for (int i = 0; i < N; i++) {
+            bool mejorado = false;
+            if (viajes[i][k] != -1) {                           //si juega partido en esa jornada
+                int local = viajes[i][k];
+                int visitante = rivales[local][k];
+                double distancia_inicial = 0;
+                double distancia_hipotetica = 0;
+
+                distancias_iniciales(viajes, local, visitante, k, distancia_inicial, distancia_hipotetica, NUM_JORNADAS);
+                for (int k2 = 0; k2 < viajes[0].size(); k2++) {     //recorremos todas las jornadas posibles. hay que comprobar que esos mismos equipos no jueguen en esa jornada, y en caso de que no haya ninguna opcion, crear una nueva
+                    if (k2 != k) {
+                        if (rivales[local][k2] == -1 && rivales[visitante][k2] == -1 && hayPartido(viajes, k2, k, local, visitante)) {
+                            double distancia_antigua = nuevaDist(viajes, local, visitante);
+                            actualiza_moviendo(viajes, rivales, k2, k, local, visitante);
+                            if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante)) {
+                                double distancia_nueva = nuevaDist(viajes, local, visitante);
+                                if (distancia_nueva < distancia_antigua) {
+                                    distanciaTotal += distancia_nueva - distancia_antigua;
+                                    mejorado = true;
+                                    break;
+                                }
+                                else {
+                                    actualiza_moviendo(viajes, rivales, k, k2, local, visitante);
+                                }
+                            }
+                            else {
+                                actualiza_moviendo(viajes, rivales, k, k2, local, visitante);
+                            }
+
+                        }
+
+                    }
+
+                }
+            }
+            if (mejorado) {
+                cout << "Distancia: " << distanciaTotal << endl;
+                vector<vector<int>> viajes_final;
+                for (int i = 0; i < N; i++) {
+                    vector<int> v;
+                    for (int k = 0; k < NUM_JORNADAS; k++) {
+                        if (viajes[i][k] != -1) {
+                            v.push_back(viajes[i][k]);
+                        }
+                    }
+                    viajes_final.push_back(v);
+                    //cout << v.size() << endl;
+                }
+
+
+                double distancia_final = 0;
+                for (int i = 0; i < N; i++) {
+                    for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                        distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
+                    }
+                }
+
+                for (int i = 0; i < N; i++) {
+                    distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
+                }
+
+                cout << "Distancia final: " << distancia_final << endl;
+                //cout << "--------------------------------------------------------" << endl;
+            }
+
+        }
+    }
+
+    
+
+    for (int i = 0; i < N; i++) {
+        int max_sin_jugar = 0;
+        cout << "Equipo: " << i << endl;
+        int counttotal = 0;
+        int countlocal = 0;
+        int countsinjug = 0;
+        for (int k = 0; k < NUM_JORNADAS; k++) {
+            if (viajes[i][k] != -1) {
+                counttotal++;
+                countsinjug = 0;
+            }
+            if (viajes[i][k] == i) {
+                countlocal++;
+            }
+            if (viajes[i][k] == -1) {
+                countsinjug++;
+                if (countsinjug > max_sin_jugar) {
+                    max_sin_jugar = countsinjug;
+                }
+            }
+            cout << viajes[i][k] << " ";
+        }
+
+        cout << "Partidos totales: " << counttotal << "------ Partidos como local: " << countlocal << "-------" << "Máximo de días de descanso: " << max_sin_jugar << endl;
+        cout << endl;
+    }
+
+    int max_dif = 0;
+    int maximo_part = 0;
+    for (int k = 0; k < viajes[0].size(); k++) {
+        int countsinjug = 0;
+        for (int i = 0; i < N; i++) {
+            if (viajes[i][k] != -1) {
+                equipos[i].partidos_jug++;
+                maximo_part = max(maximo_part, equipos[i].partidos_jug);
+            }
+            max_dif = max(max_dif, maximo_part - equipos[i].partidos_jug);
+            cout << max_dif << " k: " << k << " i: " << i << " partidos jugados: " << equipos[i].partidos_jug <<  endl;
+        }
+    }
+
+    cout << "Maxima diferencia de partidos " << max_dif << endl;
+    cout << endl;
+
+    
+
+    ofstream archivo2("calendario_impreso_por_dias_con_contador.txt");
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -655,29 +730,25 @@ int main() {
 
     archivo2.close(); // Cierra el archivo
 
-    /*ofstream archivo2("resultados_insercion.txt"); // Abre el archivo en modo lectura
+    ofstream archivo3("calendario_mejor.txt");
 
-    if (!archivo2) { // Verifica si el archivo se abrió correctamente
+    if (!archivo3) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
         return 1;
     }
 
-
-    vector<vector<int>> sol = muestraDist(viajes);
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            archivo2 << sol[i][k] << " ";
+    for (int i = 0; i < viajes.size(); i++) {
+        for (int k = 0; k < viajes[i].size(); k++) {
+            archivo3 << viajes[i][k] << " ";
         }
-        archivo2 << endl;
+
+        archivo3 << endl;
     }
 
 
+    archivo3.close(); // Cierra el archivo
 
 
-    archivo2.close(); // Cierra el archivo
-    */
-
-    
     return 0;
 }
 
