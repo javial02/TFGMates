@@ -435,7 +435,7 @@ bool hayPartido(const vector<vector<int>>& viajes, int k2, int k, int local, int
 
 int main() {
 
-    ifstream archivo("calendario_mejor.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("mejorado_calen.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;

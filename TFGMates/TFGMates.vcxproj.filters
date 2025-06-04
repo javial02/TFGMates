@@ -20,7 +20,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CalendarioNBA_partseg_y_desc.cpp">
+    <ClCompile Include="CalendarioNBA_balanceado.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

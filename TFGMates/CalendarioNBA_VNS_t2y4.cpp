@@ -320,6 +320,30 @@ void cambiaJornadast4(vector<vector<int>>& viajes, double& distancia) {
 
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+    int local = 0;
+    int visitante = 0;
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+    
+
+    return true;
+}
+
 
 void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limite_sin_mej, int k1, int k2, int k3) {
     double distancia_mejor = distancia;
@@ -337,8 +361,14 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
             distancia = distancia_mejor;
             if (k == 1) {
                 for (int i = 0; i < k1; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);
+                    cambiaJornadast2(nuevoCalendario, distancia);           //REVISAR ESTO!!!!!!!
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast2(nuevoCalendario, distancia);
+                    }
                     cambiaJornadast4(nuevoCalendario, distancia);
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast4(nuevoCalendario, distancia);
+                    }
                 }
             }
             else if (k == 2) {
@@ -426,7 +456,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
     }
     viajes = copiar_calendario(mejor_calendario);
-    distancia = distancia_mejor;
+    //distancia = distancia_mejor;
 }
 
 
@@ -434,7 +464,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -475,7 +505,7 @@ int main() {
     double dist_mejor = distancia;
 
 
-    ofstream archivo2("resultados_vns_t2y4.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("calen_balanced.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -489,14 +519,14 @@ int main() {
     int k3 = 4;
 
     vector<int> iteraciones = { 100};
-    vector<int> limites = { 10, 50 };
+    vector<int> limites = { 10};
 
 
     
     for (int max_iter : iteraciones) {
         for (int lim_sin_mej : limites) {
             VNS(viajes, distancia, max_iter, lim_sin_mej, k1, k2, k3);
-            archivo2 << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
+            //archivo2 << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
             cout << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
             //viajes = copiar_calendario(calendario_inicial);
             //distancia = dist_inicial;

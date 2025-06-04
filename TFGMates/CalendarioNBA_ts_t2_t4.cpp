@@ -419,10 +419,11 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
 
 
         t_inicial *= alpha;
+        cout << t_inicial << endl;
     }
 
     distancia = distancia_mejor;
-    viajes = copiar_calendario(mejor_calendario);
+    //viajes = copiar_calendario(mejor_calendario);
 
 
 }
@@ -432,7 +433,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calen_balanceado.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -476,13 +477,13 @@ int main() {
 
     vector<double> t = {100};
     //double t_inicial = 100;
-    double t_minimo = 0.01;
+    double t_minimo = 0.1;
     vector<int> M2 = {3};
     vector<int> M4 = { 5 };
-    vector<double> alphas = {0.99 };
+    vector<double> alphas = {0.90 };
 
     
-    ofstream archivo2("resultados_ts_t4y2.txt");  // Crea o abre el archivo
+    /*ofstream archivo2("resultados_ts_t4y2.txt");  // Crea o abre el archivo
 
     if (!archivo2) {
         cout << "Error al abrir el archivo!" << endl;
@@ -502,7 +503,43 @@ int main() {
     }
     
     
-    archivo2.close();
+    archivo2.close();*/
+
+    temple_simulado(viajes, distancia, 100, t_minimo, 3, 5, 0.90);
+
+    cout << distancia << endl;
+
+    distancia = 0;
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+        }
+    }
+
+    for (int i = 0; i < N; i++) {
+        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
+    }
+
+    cout << "Distancia inicial dada por el modelo: " << distancia << endl;
+
+    ofstream archivo3("calen_balanceado.txt");  // Crea o abre el archivo
+
+    if (!archivo3) {
+        cout << "Error al abrir el archivo!" << endl;
+        return 1;
+    }
+
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < viajes[i].size(); k++) {
+            archivo3 << viajes[i][k] << " ";
+        }
+        archivo3 << endl;
+    }
+
+
+    archivo3.close();
+
+
 
 
     return 0;

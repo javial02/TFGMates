@@ -438,7 +438,7 @@ int comprueba_si_partido(const vector<vector<int>>& viajes, int jornada, int equ
         }
     }
 
-    for (int k = jornada - 1; k >0 ; k--) {
+    for (int k = jornada - 1; k > 0; k--) {
         if (viajes[equipo][k] == -1) {
             count++;
         }
@@ -469,7 +469,7 @@ bool tieneDescansoExcesivo(const vector<vector<int>>& viajes, int i) {
     for (int d = 0; d < viajes[i].size(); ++d) {
         if (viajes[i][d] == -1) {
             descanso++;
-            if (descanso > 4) return true;
+            if (descanso > 5) return true;
         }
         else {
             descanso = 0;
@@ -478,10 +478,59 @@ bool tieneDescansoExcesivo(const vector<vector<int>>& viajes, int i) {
     return false;
 }
 
+void actualiza_balance(vector<vector<int>>& partidos_dia, vector<int>& minimo_dia, vector<int>& maximo_dia, int i, int jprev, int jnueva) {
+    if (jprev < jnueva) {
+        for (int k = jprev; k < jnueva; k++) {
+            partidos_dia[i][k]--;
+            if (partidos_dia[i][k] < minimo_dia[k]) {
+                minimo_dia[k] = partidos_dia[i][k];
+            }
+        }
+    }
+    else {
+        for (int k = jprev - 1; k >= jnueva; k--) {
+            partidos_dia[i][k]++;
+            if (partidos_dia[i][k] > maximo_dia[k]) {
+                maximo_dia[k] = partidos_dia[i][k];
+            }
+        }
+    }
+}
+
+bool comprueba_balance(const vector<int>& minimo_dia, const vector<int>& maximo_dia) {
+    for (int k = 0; k < minimo_dia.size(); k++) {
+        if (maximo_dia[k] > minimo_dia[k] + 4) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
+    int local = 0;
+    int visitante = 0;
+    for (int k = 0; k < viajes[i].size(); k++) {
+        if (viajes[i][k] != -1) {
+            if (viajes[i][k] == i) {
+                local++;
+            }
+            else {
+                visitante++;
+            }
+        }
+
+        if (abs(visitante - local) > 9) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 int main() {
 
-    ifstream archivo("mejorado_calen.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -489,264 +538,48 @@ int main() {
     }
 
     vector<vector<int>> viajes;
+    
     for (int i = 0; i < N; i++) {
-        vector<int> recorrido;
+        vector<int> rec;
         int n;
-        bool ok = true;
-        int count = 0;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+        for (int k = 0; k < 82; k++) {
             archivo >> n;
-            recorrido.push_back(n);
-            count++;
-            if (count == 2 && ok) {
-                recorrido.push_back(-1);
-                ok = !ok;
-                count = 0;
-            }
-            else if (count == 2 && !ok) {
-                recorrido.push_back(-1);
-                recorrido.push_back(-1);
-                recorrido.push_back(-1);
-
-                ok = !ok;
-                count = 0;
-            }
+            rec.push_back(n);
         }
-        viajes.push_back(recorrido);
+        viajes.push_back(rec);
     }
 
     archivo.close(); // Cierra el archivo
 
 
-    vector<vector<int>> rivales(viajes.size(), vector<int>(viajes[0].size(), 0));
-    for (int i = 0; i < viajes.size(); i++) {
-        for (int k = 0; k < viajes[0].size(); k++) {
-            if (viajes[i][k] == i) {
-                int rival = buscaRival(k, i, viajes);
-                rivales[i][k] = rival;
-            }
-            else {
-                rivales[i][k] = viajes[i][k];
-            }
-        }
-    }
-
-    int NUM_JORNADAS = 163;
-    double distanciaTotal = 0;
-    
-
+    int acum = 0;
     for (int i = 0; i < N; i++) {
-        int k = 0;
-        //int jornada = partido_posterior(viajes, i, k);
-        int jornada = viajes[i][k];
-        
-        while (jornada == -1 && k < NUM_JORNADAS) {
-            k++;
-            jornada = viajes[i][k];
-        }
-        
-        int prev = k;
-        //cout << prev << viajes[i][prev] << endl;
-        distanciaTotal += distanciasNBA[i][viajes[i][prev]];
-        jornada = partido_posterior(viajes, i, prev);
-        //cout << "aqui2" << endl;
-        while (jornada < viajes[i].size()) {
-            distanciaTotal += distanciasNBA[viajes[i][prev]][viajes[i][jornada]];
-            prev = jornada;
-            //cout << prev << " " << jornada << endl;
-            jornada = partido_posterior(viajes, i, prev);
-            //cout << jornada << endl;
-        }
-        //cout << "aqui" << endl;
-        distanciaTotal += distanciasNBA[viajes[i][prev]][i];
-        //cout << "Equipo " << i << ": " << distanciaTotal << endl;
-
-    }
-
-    cout << distanciaTotal << endl;
-
-    vector<vector<int>> viajes_final;
-    for (int i = 0; i < N; i++) {
-        vector<int> v;
-        for (int k = 0; k < NUM_JORNADAS; k++) {
-            if (viajes[i][k] != -1) {
-                v.push_back(viajes[i][k]);
-            }
-        }
-        viajes_final.push_back(v);
-        //cout << v.size() << endl;
-    }
-
-
-    double distancia_final = 0;
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-            distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
-        }
-        distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
-        //cout << "Equipo " << i << ": " << distancia_final << endl;
-    }
-
-
-    cout << "Distancia final: " << distancia_final << endl;
-
-
-    for (int k = 0; k < viajes[0].size(); k++) {
-        for (int i = 0; i < N; i++) {
-            bool mejorado = false;
-            if (viajes[i][k] != -1) {                           //si juega partido en esa jornada
-                int local = viajes[i][k];
-                int visitante = rivales[local][k];
-                double distancia_inicial = 0;
-                double distancia_hipotetica = 0;
-
-                distancias_iniciales(viajes, local, visitante, k, distancia_inicial, distancia_hipotetica, NUM_JORNADAS);
-                for (int k2 = 0; k2 < viajes[0].size(); k2++) {     //recorremos todas las jornadas posibles. hay que comprobar que esos mismos equipos no jueguen en esa jornada, y en caso de que no haya ninguna opcion, crear una nueva
-                    if (k2 != k) {
-                        if (rivales[local][k2] == -1 && rivales[visitante][k2] == -1 && hayPartido(viajes, k2, k, local, visitante)) {
-                            double distancia_antigua = nuevaDist(viajes, local, visitante);
-                            actualiza_moviendo(viajes, rivales, k2, k, local, visitante);
-                            if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante)) {
-                                double distancia_nueva = nuevaDist(viajes, local, visitante);
-                                if (distancia_nueva < distancia_antigua) {
-                                    distanciaTotal += distancia_nueva - distancia_antigua;
-                                    mejorado = true;
-                                    break;
-                                }
-                                else {
-                                    actualiza_moviendo(viajes, rivales, k, k2, local, visitante);
-                                }
-                            }
-                            else {
-                                actualiza_moviendo(viajes, rivales, k, k2, local, visitante);
-                            }
-
-                        }
-
-                    }
-
-                }
-            }
-            if (mejorado) {
-                cout << "Distancia: " << distanciaTotal << endl;
-                vector<vector<int>> viajes_final;
-                for (int i = 0; i < N; i++) {
-                    vector<int> v;
-                    for (int k = 0; k < NUM_JORNADAS; k++) {
-                        if (viajes[i][k] != -1) {
-                            v.push_back(viajes[i][k]);
-                        }
-                    }
-                    viajes_final.push_back(v);
-                    //cout << v.size() << endl;
-                }
-
-
-                double distancia_final = 0;
-                for (int i = 0; i < N; i++) {
-                    for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-                        distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
-                    }
-                }
-
-                for (int i = 0; i < N; i++) {
-                    distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
-                }
-
-                cout << "Distancia final: " << distancia_final << endl;
-                //cout << "--------------------------------------------------------" << endl;
-            }
-
-        }
-    }
-
-    
-
-    for (int i = 0; i < N; i++) {
-        int max_sin_jugar = 0;
-        cout << "Equipo: " << i << endl;
-        int counttotal = 0;
-        int countlocal = 0;
-        int countsinjug = 0;
-        for (int k = 0; k < NUM_JORNADAS; k++) {
-            if (viajes[i][k] != -1) {
-                counttotal++;
-                countsinjug = 0;
-            }
-            if (viajes[i][k] == i) {
-                countlocal++;
-            }
-            if (viajes[i][k] == -1) {
-                countsinjug++;
-                if (countsinjug > max_sin_jugar) {
-                    max_sin_jugar = countsinjug;
-                }
-            }
-            cout << viajes[i][k] << " ";
-        }
-
-        cout << "Partidos totales: " << counttotal << "------ Partidos como local: " << countlocal << "-------" << "Máximo de días de descanso: " << max_sin_jugar << endl;
-        cout << endl;
-    }
-
-    int max_dif = 0;
-    int maximo_part = 0;
-    for (int k = 0; k < viajes[0].size(); k++) {
-        int countsinjug = 0;
-        for (int i = 0; i < N; i++) {
-            if (viajes[i][k] != -1) {
-                equipos[i].partidos_jug++;
-                maximo_part = max(maximo_part, equipos[i].partidos_jug);
-            }
-            max_dif = max(max_dif, maximo_part - equipos[i].partidos_jug);
-            cout << max_dif << " k: " << k << " i: " << i << " partidos jugados: " << equipos[i].partidos_jug <<  endl;
-        }
-    }
-
-    cout << "Maxima diferencia de partidos " << max_dif << endl;
-    cout << endl;
-
-    
-
-    ofstream archivo2("calendario_impreso_por_dias_con_contador.txt");
-
-    if (!archivo2) { // Verifica si el archivo se abrió correctamente
-        cerr << "Error al abrir el archivo" << std::endl;
-        return 1;
-    }
-
-    for (int k = 0; k < viajes[0].size(); k++) {
-        archivo2 << "Día " << k + 1 << ":" << endl;
-        for (int i = 0; i < N; i++) {
-            if (viajes[i][k] == i) {
-                int rival = calculaRival(viajes, k, i);
-                archivo2 << equipos[i].nombre << " vs " << equipos[rival].nombre << endl;
-            }
-        }
-
-        archivo2 << "----------------------" << endl;
-    }
-
-
-    archivo2.close(); // Cierra el archivo
-
-    ofstream archivo3("resultados_descansos_y_partidosseguidos.txt");
-
-    if (!archivo3) { // Verifica si el archivo se abrió correctamente
-        cerr << "Error al abrir el archivo" << std::endl;
-        return 1;
-    }
-
-    for (int i = 0; i < viajes.size(); i++) {
+        int maximo_diff_lyc = INT_MIN;
+        int contlocal = 0;
+        int contvisit = 0;
         for (int k = 0; k < viajes[i].size(); k++) {
-            archivo3 << viajes[i][k] << " ";
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    contlocal++;
+                }
+                else {
+                    contvisit++;
+                }
+            }
+            //cout << abs(contlocal - contvisit) << endl;
+            maximo_diff_lyc = max(maximo_diff_lyc, abs(contlocal - contvisit));
+            
         }
-
-        archivo3 << endl;
+        cout << "Equipo: " << i << " maxima dif: " << maximo_diff_lyc << endl;
+        acum += maximo_diff_lyc;
     }
 
+    for (int i = 0; i < N; i++) {
+        if(comprueba_balance_lyv(viajes, i))
+            cout << i << endl;
+    }
 
-    archivo3.close(); // Cierra el archivo
+    cout << "Dif media: " << acum / N << endl;
 
 
     return 0;
