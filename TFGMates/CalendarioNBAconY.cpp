@@ -1,6 +1,3 @@
-//EN ESTE MODELO NO SE ESTÁ CONTANDO CON LA DISTANCIA RECORRIDA DE LOS EQUIPOS VISITANTES EN LA PRIMERA JORNADA DE LA TEMPORADA.
-//SE DA POR HECHO DE QUE SE EMPIEZA A CONTAR A PARTIR DE LA JORNADA 1
-
 #include <vector>
 #include <string>
 #include <iostream>
@@ -16,7 +13,8 @@ const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 15;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 82;                  //Número de jornadas
+const int TOTAL_JORNADAS_REALES = 82;           //Número de jornadas
+const int TOTAL_JORNADAS = TOTAL_JORNADAS_REALES + 2;
 
 struct InfoEquipo {
     int id;                                     //Numeración de equipos
@@ -131,6 +129,14 @@ int main() {
                         z[i][j][j2][k - 1] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z_" + to_string(i) + "_" + to_string(j) + "_" + to_string(j2) + "_Jornada_" + to_string(k));
                     }
                 }
+            }
+        }
+
+        // Todos en casa en jornada 0 y jornada final
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                model.addConstr(y[i][j][0] == (i == j ? 1 : 0));
+                model.addConstr(y[i][j][TOTAL_JORNADAS - 1] == (i == j ? 1 : 0));
             }
         }
 
@@ -292,17 +298,17 @@ int main() {
         }
 
         // Función objetivo: Minimizar distancias
-        /*GRBLinExpr distanciaTotal = 0;
+        GRBLinExpr distanciaTotal = 0;
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
                 for (int j2 = 0; j2 < N; ++j2) {
-                    for (int k = 1; k < TOTAL_JORNADAS; ++k) {
-                        distanciaTotal += z[i][j][j2][k - 1] * distanciasNBA[j][j2];
+                    for (int k = 0; k < TOTAL_JORNADAS - 1; ++k) {
+                        distanciaTotal += z[i][j][j2][k] * distanciasNBA[j][j2];
                     }
                 }
             }
         }
-        model.setObjective(distanciaTotal, GRB_MINIMIZE);*/
+        model.setObjective(distanciaTotal, GRB_MINIMIZE);
 
 
 
@@ -310,7 +316,7 @@ int main() {
 
 
         // Función objetivo vacía (solo generar el calendario)
-        model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
+       // model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
 
         // Optimizar el modelo
         model.optimize();

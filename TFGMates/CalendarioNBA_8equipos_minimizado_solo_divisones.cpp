@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>
 #include "gurobi_c++.h"
 using namespace std;
 
@@ -160,33 +161,27 @@ int main() {
         model.optimize();
 
         if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
-            cout << "Solución óptima encontrada:" << model.get(GRB_DoubleAttr_ObjVal) << std::endl;
+           
+            ofstream archivo("Calendario_modelo_8_equipos_division.txt");  // Crea o abre el archivo
+
+            if (!archivo) {
+                cout << "Error al abrir el archivo!" << endl;
+                return 1;
+            }
+
+            archivo << "Solucion optima encontrada:" << model.get(GRB_DoubleAttr_ObjVal) << endl;
 
             // Imprimir el calendario
             for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                cout << "Jornada " << k + 1 << ":" << endl;
+                archivo << "Jornada " << k + 1 << ":" << endl;
                 for (int i = 0; i < N; ++i) {
                     for (int j = 0; j < N; ++j) {
                         if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
+                            archivo << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
                         }
                     }
                 }
-
-                /*for (int i = 0; i < N; ++i) {
-                    for (int j = 0; j < N; ++j) {
-                        if (k != (TOTAL_JORNADAS - 1)) {
-                            for (int j2 = 0; j2 < N; j2++) {
-                                if (z[i][j][j2][k].get(GRB_DoubleAttr_X) > 0.5) {
-                                    cout << equipos[i].nombre << " se mueve de la ciudad " << equipos[j].nombre << " a la ciudad " << equipos[j2].nombre << " que están a " << distanciasNBA[j][j2] << endl;
-
-                                }
-                            }
-
-                        }
-                    }
-                }*/
-                cout << "-----------------------------" << endl;
+                archivo << "-----------------------------" << endl;
             }
 
             // Inicialización

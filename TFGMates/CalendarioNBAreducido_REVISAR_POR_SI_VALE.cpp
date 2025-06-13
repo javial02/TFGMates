@@ -16,7 +16,7 @@ const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 4;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 20;                  //Número de jornadas
+const int TOTAL_JORNADAS = 12;                  //Número de jornadas
 const int NUM_DIVISIONES = 6;                   //Número de divisiones
 
 struct InfoEquipo {
@@ -245,7 +245,7 @@ int main() {
         }*/
         
 
-        // Restricción: Partidos contra los equipos de la conferencia contraria
+        /*// Restricción: Partidos contra los equipos de la conferencia contraria
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
 
@@ -263,7 +263,7 @@ int main() {
                 model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
                 model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
-        }
+        }*/
 
 
         // Restricción: Cada equipo solo puede jugar un partido por jornada

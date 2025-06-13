@@ -1,0 +1,53 @@
+Solucion optima encontrada:2507.39
+Jornada 1:
+-----------------------------
+Jornada 2:
+Brooklyn Nets vs Philadelphia 76ers
+Boston Celtics vs New York Knicks
+-----------------------------
+Jornada 3:
+Brooklyn Nets vs Philadelphia 76ers
+Boston Celtics vs New York Knicks
+-----------------------------
+Jornada 4:
+New York Knicks vs Brooklyn Nets
+Boston Celtics vs Philadelphia 76ers
+-----------------------------
+Jornada 5:
+New York Knicks vs Brooklyn Nets
+Boston Celtics vs Philadelphia 76ers
+-----------------------------
+Jornada 6:
+Boston Celtics vs Brooklyn Nets
+New York Knicks vs Philadelphia 76ers
+-----------------------------
+Jornada 7:
+Boston Celtics vs Brooklyn Nets
+New York Knicks vs Philadelphia 76ers
+-----------------------------
+Jornada 8:
+New York Knicks vs Boston Celtics
+Philadelphia 76ers vs Brooklyn Nets
+-----------------------------
+Jornada 9:
+New York Knicks vs Boston Celtics
+Philadelphia 76ers vs Brooklyn Nets
+-----------------------------
+Jornada 10:
+Philadelphia 76ers vs Boston Celtics
+Brooklyn Nets vs New York Knicks
+-----------------------------
+Jornada 11:
+Philadelphia 76ers vs Boston Celtics
+Brooklyn Nets vs New York Knicks
+-----------------------------
+Jornada 12:
+Brooklyn Nets vs Boston Celtics
+Philadelphia 76ers vs New York Knicks
+-----------------------------
+Jornada 13:
+Brooklyn Nets vs Boston Celtics
+Philadelphia 76ers vs New York Knicks
+-----------------------------
+Jornada 14:
+-----------------------------

@@ -102,12 +102,12 @@ vector<vector<double>> distanciasNBA = {
 int main() {
 
     try {
-        ofstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo (lo crea si no existe)
+        /*ofstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo (lo crea si no existe)
 
         if (!archivo) {  // Verifica si se abrió correctamente
             cerr << "Error al abrir el archivo" << std::endl;
             return 1;
-        }
+        }*/
 
 
         // Inicializar el entorno de Gurobi
@@ -130,6 +130,7 @@ int main() {
             }
         }
 
+        /*
         // Límite máximo de diferencia acumulada entre partidos en casa y fuera por equipo
         const int MAX_DIF_LOCAL_VISITANTE = 7;
 
@@ -140,7 +141,7 @@ int main() {
             for (int k = 0; k < TOTAL_JORNADAS; ++k) {
                 diff[i][k] = model.addVar(0.0, GRB_INFINITY, 0.0, GRB_INTEGER,"diff_" + to_string(i) + "_k_" + to_string(k));
             }
-        }
+        }*/
 
 
         // Restricción: Cada equipo solo puede jugar un partido por jornada
@@ -162,7 +163,8 @@ int main() {
                 model.addConstr(partidosPorJornada == 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
             }
         }
-
+            
+        /*
         // Restricciones: limitar diferencia acumulada entre partidos en casa y fuera
         for (int i = 0; i < N; ++i) {
             GRBLinExpr partidosEnCasaAcumulados = 0;
@@ -184,7 +186,7 @@ int main() {
                 // Límite de desequilibrio máximo permitido
                 model.addConstr(diff[i][k] <= MAX_DIF_LOCAL_VISITANTE,"max_diff_" + to_string(i) + "_" + to_string(k));
             }
-        }
+        }*/
 
 
 
@@ -354,7 +356,7 @@ int main() {
 
             }
 
-            for (int i = 0; i < N; i++) {
+            /*for (int i = 0; i < N; i++) {
                 for (int j = 0; j < TOTAL_JORNADAS; j++) {
                     if (j != TOTAL_JORNADAS - 1) {
                         archivo << viajes[i][j] << " ";
@@ -368,7 +370,7 @@ int main() {
             }
 
 
-            archivo.close(); // Cierra el archivo
+            archivo.close(); // Cierra el archivo*/
 
         }
         else {

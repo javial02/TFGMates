@@ -1,41 +1,32 @@
-//EN ESTE MODELO NO SE ESTÁ CONTANDO CON LA DISTANCIA RECORRIDA DE LOS EQUIPOS VISITANTES EN LA PRIMERA JORNADA DE LA TEMPORADA.
-//SE DA POR HECHO DE QUE SE EMPIEZA A CONTAR A PARTIR DE LA JORNADA 1
-
+#include <iostream>
 #include <vector>
 #include <string>
-#include <iostream>
 #include "gurobi_c++.h"
-
 using namespace std;
 
-const int N = 30;								//Número de franquicias en total
-const int CONFERENCIAS = 2;						//Número de conferencias
-const int DIVISIONES_POR_CONFERENCIA = 3;		//Número de divisiones por conferencia
-const int EQUIPOS_POR_DIVISION = 4;				//Número de equipos por cada división
-const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 4 partidos
-const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
-const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
-const int NUM_EQUIPOS_CONFERENCIA = 4;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 58;                  //Número de jornadas
+const int N = 30; // Número de equipos
+const int TOTAL_JORNADAS_REALES = 58;
+const int TOTAL_JORNADAS = TOTAL_JORNADAS_REALES + 2; // jornada 0 y jornada 13 ficticias
+const int EQUIPOS_POR_DIVISION = 5;
+const int NUM_EQUIPOS_CONFERENCIA = 15;
 
 struct InfoEquipo {
-    int id;                                     //Numeración de equipos
-    string nombre;								//Nombre del equipo
-    string conferencia;							//Conferencia a la que pertenece el equipo
-    string division;							//División a la que pertenece el equipo
-    vector<int> rivales_division;			    //Lista de rivales de su misma división
-    vector<int> rivales_conf1;				    //Lista de rivales de su misma conferencia pero distinta division con los que juega 4 partidos
-    vector<int> rivales_conf2;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (2c y 1f)
-    vector<int> rivales_conf3;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (1c y 2f)
-    vector<int> rivales_interconf;			    //Lista de rivales que no son de su conferencia
+    int id;
+    string nombre;
+    string conferencia;
+    string division;
+    vector<int> rivales_division;
+    vector<int> rivales_conf1;
+    vector<int> rivales_conf2;
+    vector<int> rivales_conf3;
+    vector<int> rivales_interconf;
 };
 
-
 vector<InfoEquipo> equipos = {
-    {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
-    {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {0,2,3,4,5,6,7,8,9,10,11,12,13,14,15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {0,1,3,4,5,6,7,8,9,10,11,12,13,14,15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {3,"New York Knicks", "Este", "Atlantico", {0, 1, 2, 4}, {7, 8, 11, 13, 6, 14}, {5, 12}, {10, 9} , {0,1,2,4,5,6,7,8,9,10,11,12,13,14,15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
+    {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
+    {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
+    {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
+    {3,"New York Knicks", "Este", "Atlantico", {0, 1, 2, 4}, {7, 8, 11, 13, 6, 14}, {5, 12}, {10, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
     {4,"Toronto Raptors", "Este", "Atlantico", {0, 1, 2, 3}, {7, 8, 14, 12, 10, 9}, {6, 11}, {5, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
     {5,"Chicago Bulls", "Este", "Central", {6, 7, 8, 9}, {0, 2, 1, 13, 11, 10}, {4, 14}, {3, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
     {6,"Indiana Pacers", "Este", "Central", {5, 7, 8, 9}, {2, 3, 1, 14, 12, 11}, {0, 10}, {4, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
@@ -99,15 +90,13 @@ vector<vector<double>> distanciasNBA = {
 
 
 
-int main() {
 
+int main() {
     try {
-        // Inicializar el entorno de Gurobi
         GRBEnv env = GRBEnv(true);
         env.set("LogFile", "nba_schedule.log");
         env.start();
 
-        // Crear el modelo
         GRBModel model = GRBModel(env);
 
 
@@ -133,27 +122,12 @@ int main() {
                 }
             }
         }
- 
 
-        // Restricción: Partidos contra los equipos de la conferencia contraria
+        // Todos en casa en jornada 0 y jornada final
         for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < 30; j++) {
-
-                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                GRBLinExpr partidosEnCasa = 0;
-                GRBLinExpr partidosFuera = 0;
-                int rival = equipos[i].rivales_interconf[j];
-
-                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                    partidosEnCasa += y[i][rival][k]; // partidos de i en la ciudad del rival
-                    partidosFuera += y[rival][i][k];  // partidos del rival en la ciudad de i
-                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
-                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
-                }
-
-                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra cada uno de los 15 rivales a los que se enfrentan de la otra conferencia
-                model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
+            for (int j = 0; j < N; ++j) {
+                model.addConstr(y[i][j][0] == (i == j ? 1 : 0));
+                model.addConstr(y[i][j][TOTAL_JORNADAS - 1] == (i == j ? 1 : 0));
             }
         }
 
@@ -197,28 +171,63 @@ int main() {
             }
         }
 
+
+
+
+        // Partidos dentro de la división: 2 en casa y 2 fuera
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; ++j) {
+                int rival = equipos[i].rivales_division[j];
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosFuera += y[i][rival][k];
+                    partidosEnCasa += y[rival][i][k];
+                    model.addConstr(y[rival][i][k] <= y[i][i][k]);
+                    model.addConstr(y[i][rival][k] <= y[rival][rival][k]);
+                }
+                model.addConstr(partidosEnCasa == 2);
+                model.addConstr(partidosFuera == 2);
+            }
+        }
+
+        // Restricción: Partidos contra los equipos de la conferencia contraria
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
+
+                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                int rival = equipos[i].rivales_interconf[j];
+
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosEnCasa += y[i][rival][k]; // partidos de i en la ciudad del rival
+                    partidosFuera += y[rival][i][k];  // partidos del rival en la ciudad de i
+                    model.addConstr(y[rival][i][k] <= y[i][i][k], "Local_" + to_string(i) + "_" + to_string(k));
+                    model.addConstr(y[i][rival][k] <= y[rival][rival][k], "Visitante" + to_string(i) + "_" + to_string(k));
+                }
+
+                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra cada uno de los 15 rivales a los que se enfrentan de la otra conferencia
+                model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
+                model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
+            }
+        }
+
         // Función objetivo: Minimizar distancias
-        /*GRBLinExpr distanciaTotal = 0;
+        GRBLinExpr distanciaTotal = 0;
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
                 for (int j2 = 0; j2 < N; ++j2) {
-                    for (int k = 1; k < TOTAL_JORNADAS; ++k) {
-                        distanciaTotal += z[i][j][j2][k - 1] * distanciasNBA[j][j2];
+                    for (int k = 0; k < TOTAL_JORNADAS - 1; ++k) {
+                        distanciaTotal += z[i][j][j2][k] * distanciasNBA[j][j2];
                     }
                 }
             }
         }
-        model.setObjective(distanciaTotal, GRB_MINIMIZE);*/
 
+        //model.setObjective(distanciaTotal, GRB_MINIMIZE);
 
-
-
-
-
-        // Función objetivo vacía (solo generar el calendario)
         model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
-
-        // Optimizar el modelo
         model.optimize();
 
         if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
@@ -235,19 +244,77 @@ int main() {
                     }
                 }
 
-                /*int contador = 0;
+                /*for (int i = 0; i < N; ++i) {
+                    for (int j = 0; j < N; ++j) {
+                        if (k != (TOTAL_JORNADAS - 1)) {
+                            for (int j2 = 0; j2 < N; j2++) {
+                                if (z[i][j][j2][k].get(GRB_DoubleAttr_X) > 0.5) {
+                                    cout << equipos[i].nombre << " se mueve de la ciudad " << equipos[j].nombre << " a la ciudad " << equipos[j2].nombre << " que están a " << distanciasNBA[j][j2] << endl;
+
+                                }
+                            }
+
+                        }
+                    }
+                }*/
+                cout << "-----------------------------" << endl;
+            }
+
+            // Inicialización
+            vector<vector<double>> millasPorJornada(equipos.size(), vector<double>(TOTAL_JORNADAS, 0));
+            vector<int> ubicacionActual(equipos.size());
+
+            // Todos los equipos inician en su ciudad
+            for (int i = 0; i < equipos.size(); ++i) {
+                ubicacionActual[i] = i;
+            }
+
+            // Procesar calendario y calcular distancias por jornada
+            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                cout << "Jornada " << k + 1 << ":" << endl;
+
                 for (int i = 0; i < N; ++i) {
                     for (int j = 0; j < N; ++j) {
-                        if (y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            contador++;
+                        if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            // i = visitante, j = local
+                            cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
+
+                            // Visitante (i) viaja desde su ubicación actual hasta j
+                            if (ubicacionActual[i] != j) {
+                                double dist = distanciasNBA[ubicacionActual[i]][j];
+                                millasPorJornada[i][k] += dist;
+                                ubicacionActual[i] = j;
+                            }
+
+                            // Local (j) se queda en casa, no viaja
                         }
                     }
                 }
-
-                cout << contador << endl;*/
-
-                cout << "-----------------------------" << endl;
             }
+
+            // Añadir el viaje de regreso a casa si el equipo terminó fuera
+            for (int i = 0; i < equipos.size(); ++i) {
+                if (ubicacionActual[i] != i) {
+                    double dist = distanciasNBA[ubicacionActual[i]][i];
+                    // Puedes sumar este viaje al final como "post-jornada"
+                    millasPorJornada[i].push_back(dist);
+                    cout << equipos[i].nombre << " vuelve a casa desde " << equipos[ubicacionActual[i]].nombre
+                        << " y recorre " << dist << " millas." << endl;
+                }
+            }
+
+            // Imprimir las millas por jornada
+            cout << "\nResumen de millas recorridas por cada equipo por jornada:\n";
+            for (int i = 0; i < equipos.size(); ++i) {
+                cout << equipos[i].nombre << ": ";
+                double total = 0;
+                for (int k = 0; k < millasPorJornada[i].size(); ++k) {
+                    cout << millasPorJornada[i][k] << " ";
+                    total += millasPorJornada[i][k];
+                }
+                cout << "| Total: " << total << " millas" << endl;
+            }
+
 
         }
         else {
@@ -256,11 +323,11 @@ int main() {
 
     }
     catch (GRBException e) {
-        cout << "Error: " << e.getMessage() << endl;
+        cout << "Error de Gurobi: " << e.getMessage() << endl;
     }
     catch (...) {
-        cout << "Error desconocido" << endl;
+        cout << "Otro error" << endl;
     }
+
     return 0;
 }
-
