@@ -1,32 +1,7 @@
-//EN ESTE MODELO NO SE ESTÁ CONTANDO CON LA DISTANCIA RECORRIDA DE LOS EQUIPOS VISITANTES EN LA PRIMERA JORNADA DE LA TEMPORADA.
-//SE DA POR HECHO DE QUE SE EMPIEZA A CONTAR A PARTIR DE LA JORNADA 1
-
 #include "datosNBA.h"
+#include "heuristica2.h"
+#include "heuristica3.h"
 
-double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes, int local, int visitante) {
-    double total_dist = 0;
-    if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
-        total_dist += distanciasNBA[viajes[local][kantes]][local] + distanciasNBA[local][viajes[local][kdespues]];
-        total_dist += distanciasNBA[viajes[visitante][kantes]][local] + distanciasNBA[local][viajes[visitante][kdespues]];
-    }
-    else if (kantes < 0) {
-        total_dist += distanciasNBA[local][viajes[local][kdespues]];
-        total_dist += distanciasNBA[local][viajes[visitante][kdespues]] + distanciasNBA[local][visitante];
-    }
-    else if (kdespues > TOTAL_JORNADAS - 1) {
-        total_dist += distanciasNBA[viajes[local][kantes]][local];
-        total_dist += distanciasNBA[viajes[visitante][kantes]][local] + distanciasNBA[local][visitante];
-    }
-
-    return total_dist;
-}
-
-void cambiaJornadas(int k1, int k2, vector<vector<int>>& viajes, int local, int visitante) {
-    viajes[local][k1] = visitante;
-    viajes[local][k2] = local;
-    viajes[visitante][k1] = visitante;
-    viajes[visitante][k2] = local;
-}
 
 
 int calculaRival(const vector<vector<int>> viajes, int jornada, int rival) {
@@ -70,30 +45,6 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>> nuevo) {
     return copia;
 }
 
-double calculaDistancias2(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
-    double total_dist = 0;
-    for (int i = 0; i < N; i++) {
-        if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
-        }
-        else if (kantes < 0) {
-            total_dist += distanciasNBA[viajes[i][k]][viajes[i][kdespues]] + distanciasNBA[viajes[i][k]][i];
-        }
-        else if (kdespues > TOTAL_JORNADAS - 1) {
-            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][i];
-        }
-    }
-
-    return total_dist;
-}
-
-void cambiaJornadas2(int k1, int k2, vector<vector<int>>& viajes) {
-    for (int i = 0; i < N; i++) {
-        int aux = viajes[i][k1];
-        viajes[i][k1] = viajes[i][k2];
-        viajes[i][k2] = aux;
-    }
-}
 
 double buscaPartido_tabu(const vector<vector<int>>& viajes, int local, int visitante, int jornada, int& j_partido) {
     j_partido = -1;
@@ -103,16 +54,16 @@ double buscaPartido_tabu(const vector<vector<int>>& viajes, int local, int visit
     for (int k = 0; k < TOTAL_JORNADAS; k++) {
         if (viajes[visitante][k] == visitante && viajes[local][k] == visitante) {
             if (k - jornada == 1) {
-                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
-                dist_nueva = calculaDistancias(k, k, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
+                dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias_h3(k, k - 1, k + 1, viajes, visitante, local);
+                dist_nueva = calculaDistancias_h3(k, k, k + 1, viajes, local, visitante) + calculaDistancias_h3(jornada, jornada - 1, jornada, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
             }
             else if (k - jornada == -1) {
-                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
-                dist_nueva = calculaDistancias(k, k - 1, k, viajes, local, visitante) + calculaDistancias(jornada, jornada, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
+                dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias_h3(k, k - 1, k + 1, viajes, visitante, local);
+                dist_nueva = calculaDistancias_h3(k, k - 1, k, viajes, local, visitante) + calculaDistancias_h3(jornada, jornada, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
             }
             else {
-                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
-                dist_nueva = calculaDistancias(k, k - 1, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
+                dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias_h3(k, k - 1, k + 1, viajes, visitante, local);
+                dist_nueva = calculaDistancias_h3(k, k - 1, k + 1, viajes, local, visitante) + calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
             }
 
             if (dist_actual - dist_nueva > max) {
@@ -126,6 +77,7 @@ double buscaPartido_tabu(const vector<vector<int>>& viajes, int local, int visit
     return max;
 }
 
+
 void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter, int max_tabu_size) {
     double distancia_mejor = distancia;
     vector<vector<int>> mejor_calendario;
@@ -138,6 +90,41 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
         tuple<int, int, int> mejor_mov;
         vector<vector<int>> mejor_vecino;
 
+        for (int k1 = 0; k1 < TOTAL_JORNADAS; k1++) {
+            for (int k2 = k1 + 1; k2 < TOTAL_JORNADAS; k2++) {
+                if (lista_tabu.count({ 1,k1,k2 })) {
+                    continue;
+                }
+
+                double distancia_inicial;
+                double distancia_final;
+                if (k2 - k1 == 1) {
+                    distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
+                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+                }
+                else {
+                    distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
+                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                }
+
+                //vector<vector<int>> vecino = copiar_calendario(viajes);
+                cambiaJornadas_h2(k1, k2, viajes);
+                double diferencia = distancia_inicial - distancia_final;
+
+                //cout << diferencia << " " << mejor_dist_vec << endl;
+                if (diferencia > mejor_dist_vec) {
+                    mejor_dist_vec = diferencia;
+                    mejor_vecino = copiar_calendario(viajes);
+                    mejor_mov = { 1,k1,k2 };
+
+                }
+                cambiaJornadas_h2(k2, k1, viajes);
+
+                //cout << k1 << " " << k2 <<  endl;
+
+            }
+        }
+
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N && j != i; j++) {
                 if (lista_tabu.count({ 2, i, j }) || lista_tabu.count({ 2, j, i })) {
@@ -149,7 +136,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                         int diferencia = buscaPartido_tabu(viajes, i, j, k, cambio);
                         //cout << "dif " << i << " " << j << " " << k  << endl;
                         if (cambio != -1) {
-                            cambiaJornadas(k, cambio, viajes, i, j);
+                            cambiaJornadas_h3(k, cambio, viajes, i, j);
 
                             if (diferencia > mejor_dist_vec) {
                                 //cout << "cambio: " << cambio << endl;
@@ -158,46 +145,11 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                                 mejor_mov = { 2,i,j };
 
                             }
-                            cambiaJornadas(k, cambio, viajes, j, i);
+                            cambiaJornadas_h3(k, cambio, viajes, j, i);
                             break;
                         }
                     }
                 }
-            }
-        }
-
-        for (int k1 = 0; k1 < TOTAL_JORNADAS; k1++) {
-            for (int k2 = k1 + 1; k2 < TOTAL_JORNADAS; k2++) {
-                if (lista_tabu.count({ 1,k1,k2 })) {
-                    continue;
-                }
-
-                double distancia_inicial;
-                double distancia_final;
-                if (k2 - k1 == 1) {
-                    distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
-                    distancia_final = calculaDistancias2(k2, k1 - 1, k1, viajes) + calculaDistancias2(k1, k2, k2 + 1, viajes);
-                }
-                else {
-                    distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
-                    distancia_final = calculaDistancias2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k1, k2 - 1, k2 + 1, viajes);
-                }
-
-                //vector<vector<int>> vecino = copiar_calendario(viajes);
-                cambiaJornadas2(k1, k2, viajes);
-                double diferencia = distancia_inicial - distancia_final;
-
-                //cout << diferencia << " " << mejor_dist_vec << endl;
-                if (diferencia > mejor_dist_vec) {
-                    mejor_dist_vec = diferencia;
-                    mejor_vecino = copiar_calendario(viajes);
-                    mejor_mov = { 1,k1,k2 };
-
-                }
-                cambiaJornadas2(k2, k1, viajes);
-
-                //cout << k1 << " " << k2 <<  endl;
-
             }
         }
 
@@ -267,7 +219,7 @@ int main() {
 
     cout << "Distancia inicial dada por el modelo: " << distancia << endl;
 
-    busqueda_tabu(viajes, distancia, 1000, 50);
+    busqueda_tabu(viajes, distancia, 1000, 100);
 
     distancia = 0;
     for (int i = 0; i < N; i++) {

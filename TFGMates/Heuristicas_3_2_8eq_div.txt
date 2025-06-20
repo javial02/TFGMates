@@ -1,0 +1,83 @@
+Jornada 1:
+Philadelphia 76ers vs Boston Celtics
+New York Knicks vs Brooklyn Nets
+Oklahoma City Thunder vs Denver Nuggets
+Minnesota Timberwolves vs Utah Jazz
+----------------------
+Jornada 2:
+Philadelphia 76ers vs Brooklyn Nets
+New York Knicks vs Boston Celtics
+Oklahoma City Thunder vs Denver Nuggets
+Minnesota Timberwolves vs Utah Jazz
+----------------------
+Jornada 3:
+Philadelphia 76ers vs Brooklyn Nets
+New York Knicks vs Boston Celtics
+Oklahoma City Thunder vs Utah Jazz
+Minnesota Timberwolves vs Denver Nuggets
+----------------------
+Jornada 4:
+Philadelphia 76ers vs Boston Celtics
+New York Knicks vs Brooklyn Nets
+Oklahoma City Thunder vs Utah Jazz
+Minnesota Timberwolves vs Denver Nuggets
+----------------------
+Jornada 5:
+Boston Celtics vs Brooklyn Nets
+New York Knicks vs Philadelphia 76ers
+Oklahoma City Thunder vs Minnesota Timberwolves
+Utah Jazz vs Denver Nuggets
+----------------------
+Jornada 6:
+Boston Celtics vs Brooklyn Nets
+New York Knicks vs Philadelphia 76ers
+Oklahoma City Thunder vs Minnesota Timberwolves
+Utah Jazz vs Denver Nuggets
+----------------------
+Jornada 7:
+Boston Celtics vs New York Knicks
+Brooklyn Nets vs Philadelphia 76ers
+Utah Jazz vs Minnesota Timberwolves
+Denver Nuggets vs Oklahoma City Thunder
+----------------------
+Jornada 8:
+Boston Celtics vs Philadelphia 76ers
+Brooklyn Nets vs New York Knicks
+Utah Jazz vs Minnesota Timberwolves
+Denver Nuggets vs Oklahoma City Thunder
+----------------------
+Jornada 9:
+Boston Celtics vs Philadelphia 76ers
+Brooklyn Nets vs New York Knicks
+Utah Jazz vs Oklahoma City Thunder
+Denver Nuggets vs Minnesota Timberwolves
+----------------------
+Jornada 10:
+Brooklyn Nets vs Boston Celtics
+Philadelphia 76ers vs New York Knicks
+Utah Jazz vs Oklahoma City Thunder
+Denver Nuggets vs Minnesota Timberwolves
+----------------------
+Jornada 11:
+Brooklyn Nets vs Boston Celtics
+Philadelphia 76ers vs New York Knicks
+Minnesota Timberwolves vs Oklahoma City Thunder
+Denver Nuggets vs Utah Jazz
+----------------------
+Jornada 12:
+Boston Celtics vs New York Knicks
+Brooklyn Nets vs Philadelphia 76ers
+Minnesota Timberwolves vs Oklahoma City Thunder
+Denver Nuggets vs Utah Jazz
+----------------------
+Distancia final: 17897.8
+Boston Celtics: 1247.74 millas recorridas
+Brooklyn Nets: 630.47 millas recorridas
+Philadelphia 76ers: 825.56 millas recorridas
+New York Knicks: 1052.88 millas recorridas
+Oklahoma City Thunder: 3233.38 millas recorridas
+Minnesota Timberwolves: 3410.95 millas recorridas
+Utah Jazz: 4263.41 millas recorridas
+Denver Nuggets: 3233.38 millas recorridas
+Equipo con menor distancia recorrida: Brooklyn Nets con 630.47 millas
+Equipo con mayor distancia recorrida: Utah Jazz con 4263.41 millas

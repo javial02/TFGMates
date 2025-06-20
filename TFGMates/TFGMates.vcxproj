@@ -149,6 +149,12 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\win64\include\gurobi_c++.h" />
     <ClInclude Include="datosNBA.h" />
+    <ClInclude Include="datosNBA_4eq.h" />
+    <ClInclude Include="datosNBA_8eq.h" />
+    <ClInclude Include="datosNBA_8eq_div.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Heuristica_1.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -49,6 +49,14 @@ vector<vector<double>> distanciasNBA = {
 
 int main() {
     try {
+
+        ofstream archivo("Calendario_modelo_8_equipos_con_numeros_solo_div.txt"); // Abre el archivo (lo crea si no existe)
+
+        if (!archivo) {  // Verifica si se abrió correctamente
+            cerr << "Error al abrir el archivo" << std::endl;
+            return 1;
+        }
+
         GRBEnv env = GRBEnv(true);
         env.set("LogFile", "nba_schedule.log");
         env.start();
@@ -112,6 +120,8 @@ int main() {
             }
         }
 
+
+
         // Relación entre y y z: Si viajan entre ciudades
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
@@ -145,6 +155,8 @@ int main() {
             }
         }
 
+        
+
         // Función objetivo: Minimizar distancias
         GRBLinExpr distanciaTotal = 0;
         for (int i = 0; i < N; ++i) {
@@ -157,32 +169,75 @@ int main() {
             }
         }
 
-        model.setObjective(distanciaTotal, GRB_MINIMIZE);
+        //model.setObjective(distanciaTotal, GRB_MINIMIZE);
+        model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
         model.optimize();
 
         if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
-           
-            ofstream archivo("Calendario_modelo_8_equipos_division.txt");  // Crea o abre el archivo
-
-            if (!archivo) {
-                cout << "Error al abrir el archivo!" << endl;
-                return 1;
-            }
-
-            archivo << "Solucion optima encontrada:" << model.get(GRB_DoubleAttr_ObjVal) << endl;
+            cout << "Solución óptima encontrada:" << model.get(GRB_DoubleAttr_ObjVal) << std::endl;
 
             // Imprimir el calendario
             for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                archivo << "Jornada " << k + 1 << ":" << endl;
+                cout << "Jornada " << k + 1 << ":" << endl;
                 for (int i = 0; i < N; ++i) {
                     for (int j = 0; j < N; ++j) {
                         if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            archivo << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
+                            cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
                         }
                     }
                 }
-                archivo << "-----------------------------" << endl;
+
+                /*for (int i = 0; i < N; ++i) {
+                    for (int j = 0; j < N; ++j) {
+                        if (k != (TOTAL_JORNADAS - 1)) {
+                            for (int j2 = 0; j2 < N; j2++) {
+                                if (z[i][j][j2][k].get(GRB_DoubleAttr_X) > 0.5) {
+                                    cout << equipos[i].nombre << " se mueve de la ciudad " << equipos[j].nombre << " a la ciudad " << equipos[j2].nombre << " que están a " << distanciasNBA[j][j2] << endl;
+
+                                }
+                            }
+
+                        }
+                    }
+                }*/
+                cout << "-----------------------------" << endl;
             }
+
+            vector<vector<int>> viajes;
+            bool encontrado;
+
+
+            for (int i = 0; i < N; i++) {
+                vector<int> recorrido;
+                for (int k = 0; k < TOTAL_JORNADAS; k++) {
+                    encontrado = false;
+                    for (int j = 0; j < N && !encontrado; j++) {
+                        if (y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            recorrido.push_back(j);
+                            encontrado = true;
+                        }
+                    }
+                }
+
+                viajes.push_back(recorrido);
+
+            }
+
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < TOTAL_JORNADAS; j++) {
+                    if (j != TOTAL_JORNADAS - 1) {
+                        archivo << viajes[i][j] << " ";
+                    }
+                    else {
+                        archivo << viajes[i][j] << "\n";
+                    }
+
+                }
+
+            }
+
+
+            archivo.close(); // Cierra el archivo
 
             // Inicialización
             vector<vector<double>> millasPorJornada(equipos.size(), vector<double>(TOTAL_JORNADAS, 0));

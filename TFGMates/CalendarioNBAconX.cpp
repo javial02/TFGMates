@@ -28,10 +28,6 @@ struct InfoEquipo {
     vector<int> rivales_interconf;			    //Lista de rivales que no son de su conferencia
 };
 
-struct InfoUltimosPartidos {
-    int ultimo_rival;                                     //id del ultimo rival
-    bool en_casa;                               //Booleano para guardar si el último partido ha sido en casa o no
-};
 
 vector<InfoEquipo> equipos = {
     {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },

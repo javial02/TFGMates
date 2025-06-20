@@ -5,8 +5,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <algorithm>
 #include "gurobi_c++.h"
-
 
 using namespace std;
 
@@ -101,21 +104,6 @@ vector<vector<double>> distanciasNBA = {
 };
 
 
-/*
-vector<InfoEquipo> equipos = {
-    {0, "Boston Celtics", "Este", "Atlántico", {1, 2, 3}, {8, 7, 5, 10, 12}, {9, 13}, {6, 11}, {}},
-    {1, "Brooklyn Nets", "Este", "Atlántico", {0, 2, 3}, {13, 6, 9, 10, 5, 11}, {8}, {7, 12}, {}},
-    {2, "Philadelphia 76ers", "Este", "Atlántico", {0, 1, 3}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8}, {}},
-    {3, "New York Knicks", "Este", "Atlántico", {0, 1, 2}, {7, 8, 11, 13, 6}, {5, 12}, {10, 9}, {}},
-};
-
-vector<vector<double>> distanciasNBA = {
-    {0, 217.9, 309.3, 213.78},
-    {217.9, 0, 98.12, 5.45},
-    {309.3, 98.12, 0, 96.67},
-    {213.78, 5.45, 96.67, 0},
-};
-*/
 
 double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<int>>& viajes, int local, int visitante) {
     double total_dist = 0;
@@ -135,7 +123,7 @@ double calculaDistancias(int k, int kantes, int kdespues, const vector<vector<in
     return total_dist;
 }
 
-double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante, int jornada, int & j_partido) {
+double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante, int jornada, int& j_partido) {
     j_partido = -1;
     double dist_nueva = 0;
     double dist_actual = 0;
@@ -154,7 +142,7 @@ double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante,
                 dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, local, visitante) + calculaDistancias(k, k - 1, k + 1, viajes, visitante, local);
                 dist_nueva = calculaDistancias(k, k - 1, k + 1, viajes, local, visitante) + calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, visitante, local);   //aqui el local pasa a ser visitante y viceversa
             }
-            
+
             if (dist_actual - dist_nueva > max) {
                 max = dist_actual - dist_nueva;
                 j_partido = k;
@@ -163,6 +151,31 @@ double buscaPartido(const vector<vector<int>>& viajes, int local, int visitante,
     }
 
     return max;
+}
+
+double calculaDistancias2(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
+    double total_dist = 0;
+    for (int i = 0; i < N; i++) {
+        if (kantes >= 0 && kdespues <= TOTAL_JORNADAS - 1) {
+            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][viajes[i][kdespues]];
+        }
+        else if (kantes < 0) {
+            total_dist += distanciasNBA[viajes[i][k]][viajes[i][kdespues]] + distanciasNBA[viajes[i][k]][i];
+        }
+        else if (kdespues > TOTAL_JORNADAS - 1) {
+            total_dist += distanciasNBA[viajes[i][kantes]][viajes[i][k]] + distanciasNBA[viajes[i][k]][i];
+        }
+    }
+
+    return total_dist;
+}
+
+void cambiaJornadas2(int k1, int k2, vector<vector<int>>& viajes) {
+    for (int i = 0; i < N; i++) {
+        int aux = viajes[i][k1];
+        viajes[i][k1] = viajes[i][k2];
+        viajes[i][k2] = aux;
+    }
 }
 
 
@@ -201,12 +214,279 @@ void imprimeCalendario(const vector<vector<int>> viajes) {
     }
 }
 
+vector<vector<int>> copiar_calendario(const vector<vector<int>> nuevo) {
+    vector<vector<int>> copia;
+    for (int i = 0; i < N; i++) {
+        vector<int> recorrido;
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            int aux = nuevo[i][k];
+            recorrido.push_back(aux);
+        }
+        copia.push_back(recorrido);
+    }
+    return copia;
+}
+
+int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
+    int jornada = -1;
+    bool ok = false;
+    for (int k = 0; k < TOTAL_JORNADAS && !ok; k++) {              //Awui se podria poner aleatoriadad al valor inicial de k para darle mas aleatoriedad al partido
+        if (viajes[e1][k] == e1 && viajes[e2][k] == e1) {
+            jornada = k;
+            ok = true;
+        }
+    }
+
+    return jornada;
+}
+
+void cambiaJornadast2(vector<vector<int>>& viajes, double& distancia) {
+    double distancia_nueva = 0;
+    double distancia_inicial = 0;
+    double distancia_final = 0;
+
+    int k1 = rand() % TOTAL_JORNADAS;
+    int k2 = rand() % TOTAL_JORNADAS;
+    while (k1 == k2) {
+        k2 = rand() % TOTAL_JORNADAS;
+    }
+
+    if (k1 < k2) {
+        if (k2 - k1 == 1) {
+            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
+            distancia_final = calculaDistancias2(k2, k1 - 1, k1, viajes) + calculaDistancias2(k1, k2, k2 + 1, viajes);
+        }
+        else {
+            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
+            distancia_final = calculaDistancias2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k1, k2 - 1, k2 + 1, viajes);
+        }
+    }
+    else {
+        if (k1 - k2 == 1) {
+            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
+            distancia_final = calculaDistancias2(k1, k2 - 1, k2, viajes) + calculaDistancias2(k2, k1, k1 + 1, viajes);
+        }
+        else {
+            distancia_inicial = calculaDistancias2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k2, k2 - 1, k2 + 1, viajes);
+            distancia_final = calculaDistancias2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias2(k1, k2 - 1, k2 + 1, viajes);
+        }
+
+    }
+
+    cambiaJornadas2(k1, k2, viajes);
+    distancia_nueva = distancia_final - distancia_inicial;
+    distancia += distancia_nueva;
+
+}
+
+
+
+
+void cambiaJornadast4(vector<vector<int>>& viajes, double& distancia) {
+    int e1 = rand() % N;
+    int e2 = rand() % N;
+    while (e1 == e2) {
+        e2 = rand() % N;
+    }
+
+    int jornada = buscaPartido(viajes, e1, e2);
+
+    int j_partido = -1;
+    double dist_nueva = 0;
+    double dist_actual = 0;
+    double max = 0;
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {
+        if (viajes[e2][k] == e2 && viajes[e1][k] == e2) {
+            if (k - jornada == 1) {
+                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias(k, k - 1, k + 1, viajes, e2, e1);
+                dist_nueva = calculaDistancias(k, k, k + 1, viajes, e1, e2) + calculaDistancias(jornada, jornada - 1, jornada, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+            }
+            else if (k - jornada == -1) {
+                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias(k, k - 1, k + 1, viajes, e2, e1);
+                dist_nueva = calculaDistancias(k, k - 1, k, viajes, e1, e2) + calculaDistancias(jornada, jornada, jornada + 1, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+            }
+            else {
+                dist_actual = calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias(k, k - 1, k + 1, viajes, e2, e1);
+                dist_nueva = calculaDistancias(k, k - 1, k + 1, viajes, e1, e2) + calculaDistancias(jornada, jornada - 1, jornada + 1, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+            }
+
+            max = dist_actual - dist_nueva;
+            j_partido = k;
+        }
+    }
+
+    cambiaJornadas(jornada, j_partido, viajes, e1, e2);
+    distancia -= max;
+
+}
+
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+    int local = 0;
+    int visitante = 0;
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
+
+void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limite_sin_mej, int k1, int k2, int k3) {
+    double distancia_mejor = distancia;
+    vector<vector<int>> mejor_calendario;
+
+    mejor_calendario = copiar_calendario(viajes);
+
+    int iter_sin_mej = 0;
+
+    for (int iter = 0; iter < max_iter && iter_sin_mej < limite_sin_mej; iter++) {
+        cout << iter << endl;
+        int k = 1;
+        while (k <= 3) {
+            vector<vector<int>> nuevoCalendario = copiar_calendario(mejor_calendario);
+            distancia = distancia_mejor;
+            if (k == 1) {
+                for (int i = 0; i < k1; i++) {
+                    cambiaJornadast2(nuevoCalendario, distancia);           //REVISAR ESTO!!!!!!!
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast2(nuevoCalendario, distancia);
+                    }
+                    cambiaJornadast4(nuevoCalendario, distancia);
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast4(nuevoCalendario, distancia);
+                    }
+                }
+            }
+            else if (k == 2) {
+                for (int i = 0; i < k2; i++) {
+                    cambiaJornadast2(nuevoCalendario, distancia);           //REVISAR ESTO!!!!!!!
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast2(nuevoCalendario, distancia);
+                    }
+                    cambiaJornadast4(nuevoCalendario, distancia);
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast4(nuevoCalendario, distancia);
+                    }
+                }
+            }
+            else {
+                for (int i = 0; i < k3; i++) {
+                    cambiaJornadast2(nuevoCalendario, distancia);           //REVISAR ESTO!!!!!!!
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast2(nuevoCalendario, distancia);
+                    }
+                    cambiaJornadast4(nuevoCalendario, distancia);
+                    while (!comprueba_balance_lyv(nuevoCalendario)) {
+                        cambiaJornadast4(nuevoCalendario, distancia);
+                    }
+                }
+            }
+
+            int j1 = 0;
+            double diferencia = 0;
+            double distancia_inicial = 0;
+            double distancia_final = 0;
+            while (j1 < TOTAL_JORNADAS) {
+                int j2 = j1 + 1;
+                while (j2 < TOTAL_JORNADAS) {
+                    if (j2 - j1 == 1) {
+                        distancia_inicial = calculaDistancias2(j1, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias2(j2, j2 - 1, j2 + 1, nuevoCalendario);
+                        distancia_final = calculaDistancias2(j2, j1 - 1, j1, nuevoCalendario) + calculaDistancias2(j1, j2, j2 + 1, nuevoCalendario);
+                    }
+                    else {
+                        distancia_inicial = calculaDistancias2(j1, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias2(j2, j2 - 1, j2 + 1, nuevoCalendario);
+                        distancia_final = calculaDistancias2(j2, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias2(j1, j2 - 1, j2 + 1, nuevoCalendario);
+                    }
+
+                    cambiaJornadas2(j1, j2, nuevoCalendario);
+                    if (distancia_final < distancia_inicial && comprueba_balance_lyv(nuevoCalendario)) {
+                        diferencia = distancia_inicial - distancia_final;
+
+                        distancia -= diferencia;
+                        
+                        //cout << "He cambiado la jornada " << j1 + 1 << " por la jornada " << j2 + 1 << " recortando " << diferencia << " millas" << endl;
+                        j1 = -1;
+                        break;
+                    }
+                    else {
+                        cambiaJornadas2(j2, j1, nuevoCalendario);
+                    }
+                    j2++;
+                }
+                j1++;
+            }
+
+
+            //double diferencia = 0;
+            int i = 0;
+
+            while (i < N) {
+                int j = 0;
+                while (j < N) {
+                    if (i != j) {
+                        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                            if (nuevoCalendario[i][k] == i && nuevoCalendario[j][k] == i) {
+                                int cambio;
+                                diferencia = buscaPartido(nuevoCalendario, i, j, k, cambio);
+                                if (cambio != -1) {
+                                    
+                                    cambiaJornadas(k, cambio, nuevoCalendario, i, j);
+                                    if (comprueba_balance_lyv(nuevoCalendario)) {
+                                        distancia -= diferencia;
+                                        //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
+                                        j = -1;
+                                        break;
+                                    }
+                                    else {
+                                        cambiaJornadas(cambio, k, nuevoCalendario, i, j);
+                                    }
+                                    
+                                }
+                            }
+                        }
+                    }
+                    j++;
+                }
+                i++;
+            }
+
+            if (distancia < distancia_mejor) {
+                distancia_mejor = distancia;
+                mejor_calendario = copiar_calendario(nuevoCalendario);
+                iter_sin_mej = 0;
+                k = 1;
+            }
+            else {
+                k++;
+            }
+        }
+        iter_sin_mej++;
+
+    }
+    viajes = copiar_calendario(mejor_calendario);
+    //distancia = distancia_mejor;
+}
+
 
 
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -226,7 +506,7 @@ int main() {
 
     archivo.close(); // Cierra el archivo
 
-
+    //-----------------Distancia que genera el modelo--------------------------
     double distancia = 0;
     for (int i = 0; i < N; i++) {
         for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
@@ -238,49 +518,56 @@ int main() {
         distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
     }
 
-    cout << "Distancia inicial: " << distancia << endl;
+    cout << "Distancia inicial dada por el modelo: " << distancia << endl;
 
-    double diferencia = 0;
-    int i = 0;
+    vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
+    double dist_inicial = distancia;
 
-    while (i < N) {
-        int j = 0;
-        while (j < N) {
-            if (i != j) {
-                for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-                    if (viajes[i][k] == i && viajes[j][k] == i) {
-                        int cambio;
-                        diferencia = buscaPartido(viajes, i, j, k, cambio);
-                        if (cambio != -1) {
-                            distancia -= diferencia;
-                            cambiaJornadas(k, cambio, viajes, i, j);
-                            cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
-                            j = -1;
-                            break;
-                        }
-                    }
-                }
-            }
-            j++;
+    vector<vector<int>> mejor_calendario;
+    double dist_mejor = distancia;
+
+
+    ofstream archivo2("calen_balanceado_lyv_VNS.txt"); // Abre el archivo en modo lectura
+
+    if (!archivo2) { // Verifica si el archivo se abrió correctamente
+        cerr << "Error al abrir el archivo" << std::endl;
+        return 1;
+    }
+
+    //int max_iter = 100;
+    //int lim_sin_mej = 10;
+    int k1 = 2;
+    int k2 = 3;
+    int k3 = 4;
+
+    vector<int> iteraciones = { 100 };
+    vector<int> limites = { 10 };
+
+
+
+    for (int max_iter : iteraciones) {
+        for (int lim_sin_mej : limites) {
+            VNS(viajes, distancia, max_iter, lim_sin_mej, k1, k2, k3);
+            //archivo2 << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
+            cout << "Max iter = " << max_iter << ", limite sin mej = " << lim_sin_mej << ", Distancia -> " << distancia << endl;
+            //viajes = copiar_calendario(calendario_inicial);
+            //distancia = dist_inicial;
         }
-        i++;
     }
 
-    cout << "Distancia final: " << distancia << endl;
 
-    double distancia2 = 0;
+
     for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
-            distancia2 += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+        for (int k = 0; k < TOTAL_JORNADAS; k++) {
+            archivo2 << viajes[i][k] << " ";
         }
+        archivo2 << endl;
     }
 
-    for (int i = 0; i < N; i++) {
-        distancia2 += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
-    }
 
-    cout << "Distancia final2: " << distancia2 << endl;
 
+
+    archivo2.close(); // Cierra el archivo
 
 
     return 0;

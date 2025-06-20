@@ -1,0 +1,1 @@
+T = 50, M = 2, alpha = 0.9 -> Mejor Distancia: 1.87352e+06
