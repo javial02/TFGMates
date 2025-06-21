@@ -182,6 +182,52 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
     return nuevo;
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
+    int local = 0;
+    int visitante = 0;
+    for (int k = 0; k < viajes[i].size(); k++) {
+        if (viajes[i][k] != -1) {
+            if (viajes[i][k] == i) {
+                local++;
+            }
+            else {
+                visitante++;
+            }
+        }
+
+        if (abs(visitante - local) > 10) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
 
 int main() {
 
@@ -199,11 +245,8 @@ int main() {
             env.set("LogFile", "nba_schedule.log");
             env.start();
 
-            env.set(GRB_IntParam_Seed, cont + time(NULL)); // semilla variable
-
             // Crear el modelo
             GRBModel model = GRBModel(env);
-
 
             // Variables binarias: x[i][j][k] donde i es el equipo local, j es el visitante y k es la jornada
             GRBVar x[N][N][TOTAL_JORNADAS];
@@ -218,8 +261,66 @@ int main() {
             }
 
 
+            // Límite máximo de diferencia acumulada entre partidos en casa y fuera por equipo
+            const int MAX_DIF_LOCAL_VISITANTE = 10;
 
-            //Restricción de partidos de la división
+            // Variables auxiliares para la diferencia absoluta en cada jornada
+            GRBVar diff[N][TOTAL_JORNADAS];
+
+            for (int i = 0; i < N; ++i) {
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    diff[i][k] = model.addVar(0.0, GRB_INFINITY, 0.0, GRB_INTEGER, "diff_" + to_string(i) + "_k_" + to_string(k));
+                }
+            }
+
+
+            // Restricción: Cada equipo solo puede jugar un partido por jornada
+            for (int i = 0; i < N; ++i) {
+                for (int k = 0; k < TOTAL_JORNADAS; k++) {
+
+                    // Inicializar contadores para ver la cantidad de partidos que juega cada equipo por jornada
+                    GRBLinExpr partidosPorJornada = 0;
+
+                    for (int j = 0; j < N; ++j) {
+                        if (i != j) {
+                            partidosPorJornada += x[i][j][k]; // partidos de i en casa contra j 
+                            partidosPorJornada += x[j][i][k];  // partidos de i fuera de casa contra j
+                        }
+
+                    }
+
+                    // Restricción para que cada equipo juegue 1 partido por jornada
+                    model.addConstr(partidosPorJornada == 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
+                }
+            }
+
+
+            // Restricciones: limitar diferencia acumulada entre partidos en casa y fuera
+            for (int i = 0; i < N; ++i) {
+                GRBLinExpr partidosEnCasaAcumulados = 0;
+                GRBLinExpr partidosFueraAcumulados = 0;
+
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    // Actualizar acumulados hasta jornada k
+                    for (int j = 0; j < N; ++j) {
+                        if (i != j) {
+                            partidosEnCasaAcumulados += x[i][j][k];     // Partido en casa
+                            partidosFueraAcumulados += x[j][i][k];      // Partido fuera
+                        }
+                    }
+
+                    // Definir la diferencia absoluta con variables auxiliares
+                    model.addConstr(partidosEnCasaAcumulados - partidosFueraAcumulados <= diff[i][k], "diff_pos_" + to_string(i) + "_" + to_string(k));
+                    model.addConstr(partidosFueraAcumulados - partidosEnCasaAcumulados <= diff[i][k], "diff_neg_" + to_string(i) + "_" + to_string(k));
+
+                    // Límite de desequilibrio máximo permitido
+                    model.addConstr(diff[i][k] <= MAX_DIF_LOCAL_VISITANTE, "max_diff_" + to_string(i) + "_" + to_string(k));
+                }
+            }
+
+
+
+            // Restricción: Partidos dentro de la división
             for (int i = 0; i < N; ++i) {
                 for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
 
@@ -239,8 +340,9 @@ int main() {
                 }
             }
 
+
             //---------------PARTIDOS FUERA DE LA DIVISIÓN-----------------
-// Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
+            // Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
             for (int i = 0; i < N; ++i) {
                 for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
 
@@ -261,7 +363,6 @@ int main() {
             }
 
 
-
             // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (2c y 1f)
             for (int i = 0; i < N; ++i) {
                 for (int j = 0; j < NUM_RIVALES_CONF_2; j++) {
@@ -269,7 +370,7 @@ int main() {
                     // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
                     GRBLinExpr partidosEnCasa = 0;
                     GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_conf2[j];
+                    int rival = equipos[i].rivales_conf3[j];
 
                     for (int k = 0; k < TOTAL_JORNADAS; ++k) {
                         partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
@@ -283,7 +384,6 @@ int main() {
             }
 
 
-
             // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (1c y 2f)
             for (int i = 0; i < N; ++i) {
                 for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
@@ -291,7 +391,7 @@ int main() {
                     // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
                     GRBLinExpr partidosEnCasa = 0;
                     GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_conf3[j];
+                    int rival = equipos[i].rivales_conf2[j];
 
                     for (int k = 0; k < TOTAL_JORNADAS; ++k) {
                         partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
@@ -324,32 +424,6 @@ int main() {
                     model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
                 }
             }
-
-
-
-
-
-
-            // Restricción: Cada equipo solo puede jugar un partido por jornada
-            for (int i = 0; i < N; ++i) {
-                for (int k = 0; k < TOTAL_JORNADAS; k++) {
-
-                    // Inicializar contadores para ver la cantidad de partidos que juega cada equipo por jornada
-                    GRBLinExpr partidosPorJornada = 0;
-
-                    for (int j = 0; j < N; ++j) {
-                        if (i != j) {
-                            partidosPorJornada += x[i][j][k]; // partidos de i en casa contra j 
-                            partidosPorJornada += x[j][i][k];  // partidos de i fuera de casa contra j
-                        }
-
-                    }
-
-                    // Restricción para que cada equipo juegue 1 partido por jornada
-                    model.addConstr(partidosPorJornada == 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
-                }
-            }
-
             // Función objetivo vacía (solo generar el calendario)
             model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
 
@@ -400,33 +474,36 @@ int main() {
                     dist_inicial = distancia;
 
                     //---------------------Heurística de intercambio de jornadas--------------------------
-                    int k1 = 0;
+                    int j1 = 0;
                     double diferencia = 0;
                     double distancia_inicial = 0;
                     double distancia_final = 0;
-                    while (k1 < TOTAL_JORNADAS) {
-                        int k2 = k1 + 1;
-                        while (k2 < TOTAL_JORNADAS) {
-
-                            distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-                            if (k2 - k1 == 1) {
-                                distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+                    while (j1 < TOTAL_JORNADAS) {
+                        int j2 = j1 + 1;
+                        while (j2 < TOTAL_JORNADAS) {
+                            distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
+                            if (j2 - j1 == 1) {
+                                distancia_final = calculaDistancias_h2(j2, j1 - 1, j1, viajes) + calculaDistancias_h2(j1, j2, j2 + 1, viajes);
                             }
                             else {
-                                distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                                distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, viajes);
                             }
 
-
-                            if (distancia_final < distancia_inicial) {
+                            cambiaJornadas_h2(j1, j2, viajes);
+                            if (distancia_final < distancia_inicial && comprueba_balance_lyv(viajes)) {
                                 diferencia = distancia_inicial - distancia_final;
+
                                 distancia -= diferencia;
-                                cambiaJornadas_h2(k1, k2, viajes);
-                                k1 = -1;
+
+                                j1 = -1;
                                 break;
                             }
-                            k2++;
+                            else {
+                                cambiaJornadas_h2(j2, j1, viajes);
+                            }
+                            j2++;
                         }
-                        k1++;
+                        j1++;
                     }
 
                     cout << "Distancia tras cambios de jornada: " << distancia << endl;
@@ -435,6 +512,7 @@ int main() {
 
                     //double diferencia = 0;
                     int i = 0;
+
                     bool mejora = true;
 
                     while (mejora) {
@@ -443,14 +521,21 @@ int main() {
                         for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
                             for (int i = 0; i < N; i++) {
                                 for (int j = 0; j < N; j++) {
-                                    if (i != j && viajes[i][k] == i && viajes[j][k] == i) {
+                                    if (viajes[i][k] == i && viajes[j][k] == i) {
                                         int cambio;
                                         diferencia = buscaPartido_h3(viajes, i, j, k, cambio);
                                         if (cambio != -1) {
-                                            distancia -= diferencia;
                                             cambiaJornadas_h3(k, cambio, viajes, i, j);
-                                            mejora = true;
-                                            break;
+                                            if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
+                                                distancia -= diferencia;
+                                                mejora = true;
+                                                //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
+                                                j = -1;
+                                                break;
+                                            }
+                                            else {
+                                                cambiaJornadas_h3(cambio, k, viajes, i, j);
+                                            }
                                         }
                                     }
                                 }

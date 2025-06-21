@@ -176,9 +176,59 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
 }
 
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
+    int local = 0;
+    int visitante = 0;
+    for (int k = 0; k < viajes[i].size(); k++) {
+        if (viajes[i][k] != -1) {
+            if (viajes[i][k] == i) {
+                local++;
+            }
+            else {
+                visitante++;
+            }
+        }
+
+        if (abs(visitante - local) > 10) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
+
+
+
+
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -217,10 +267,9 @@ int main() {
     double dist_inicial;
     do {
         dist_inicial = distancia;
-
-        //--------------------Heurística de partidos como local y visitante---------------------
         double diferencia = 0;
         int i = 0;
+
         bool mejora = true;
 
         while (mejora) {
@@ -229,14 +278,21 @@ int main() {
             for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
                 for (int i = 0; i < N; i++) {
                     for (int j = 0; j < N; j++) {
-                        if (i != j && viajes[i][k] == i && viajes[j][k] == i) {
+                        if (viajes[i][k] == i && viajes[j][k] == i) {
                             int cambio;
                             diferencia = buscaPartido_h3(viajes, i, j, k, cambio);
                             if (cambio != -1) {
-                                distancia -= diferencia;
                                 cambiaJornadas_h3(k, cambio, viajes, i, j);
-                                mejora = true;
-                                break;
+                                if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
+                                    distancia -= diferencia;
+                                    mejora = true;
+                                    //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
+                                    j = -1;
+                                    break;
+                                }
+                                else {
+                                    cambiaJornadas_h3(cambio, k, viajes, i, j);
+                                }
                             }
                         }
                     }
@@ -253,35 +309,43 @@ int main() {
         cout << "Distancia tras cambios de local y visitante: " << distancia << endl;
 
         //---------------------Heurística de intercambio de jornadas--------------------------
-        int k1 = 0;
+        int j1 = 0;
+        
         double distancia_inicial = 0;
         double distancia_final = 0;
-        while (k1 < TOTAL_JORNADAS) {
-            int k2 = k1 + 1;
-            while (k2 < TOTAL_JORNADAS) {
-
-                distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-                if (k2 - k1 == 1) {
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+        while (j1 < TOTAL_JORNADAS) {
+            int j2 = j1 + 1;
+            while (j2 < TOTAL_JORNADAS) {
+                distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
+                if (j2 - j1 == 1) {
+                    distancia_final = calculaDistancias_h2(j2, j1 - 1, j1, viajes) + calculaDistancias_h2(j1, j2, j2 + 1, viajes);
                 }
                 else {
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                    distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, viajes);
                 }
 
-
-                if (distancia_final < distancia_inicial) {
+                cambiaJornadas_h2(j1, j2, viajes);
+                if (distancia_final < distancia_inicial && comprueba_balance_lyv(viajes)) {
                     diferencia = distancia_inicial - distancia_final;
+
                     distancia -= diferencia;
-                    cambiaJornadas_h2(k1, k2, viajes);
-                    k1 = -1;
+
+                    j1 = -1;
                     break;
                 }
-                k2++;
+                else {
+                    cambiaJornadas_h2(j2, j1, viajes);
+                }
+                j2++;
             }
-            k1++;
+            j1++;
         }
 
         cout << "Distancia tras cambios de jornada: " << distancia << endl;
+
+        //--------------------Heurística de partidos como local y visitante---------------------
+
+        
 
 
     } while (distancia < dist_inicial);

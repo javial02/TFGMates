@@ -421,7 +421,7 @@ bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
             }
         }
 
-        if (abs(visitante - local) > 9) {
+        if (abs(visitante - local) > 10) {
             return false;
         }
     }
@@ -472,7 +472,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, vector<vector<int>>& rivales, do
                                     vector<int> old_max = maximo_dia;
                                     actualiza_balance(partidos_dia, minimo_dia, maximo_dia, local, k, k2);
                                     actualiza_balance(partidos_dia, minimo_dia, maximo_dia, visitante, k, k2);
-                                    if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante) && comprueba_balance(minimo_dia, maximo_dia) && dist < mejor_dist_vec) {
+                                    if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante) && comprueba_balance(minimo_dia, maximo_dia) && comprueba_balance_lyv(viajes, local) && comprueba_balance_lyv(viajes, visitante) && dist < mejor_dist_vec) {
                    
                                         //mejorado2 = true;
                                         //mejorado = true;
@@ -699,7 +699,7 @@ int main() {
     for (double t_inicial : t) {
         for (int M : Ms) {
             for (double alpha : alphas) {
-                busqueda_tabu(viajes, rivales, distanciaTotal, 500, 50, minimo_dia, maximo_dia, partidos_dia);
+                busqueda_tabu(viajes, rivales, distanciaTotal, 200, 50, minimo_dia, maximo_dia, partidos_dia);
                 //archivo2 << "T = " << t_inicial << ", M = " << M << ", alpha = " << alpha << " -> Mejor Distancia: " << distancia << endl;
                 cout << "T = " << t_inicial << ", M = " << M << ", alpha = " << alpha << " -> Mejor Distancia: " << distanciaTotal << endl;
                 if (distanciaTotal < dist_mejor) {

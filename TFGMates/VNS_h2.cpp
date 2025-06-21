@@ -120,29 +120,66 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
     return nuevo;
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
 void cambiaJornadast2(vector<vector<int>>& viajes, double& distancia) {
 
-    int k1 = rand() % TOTAL_JORNADAS;
-    int k2 = rand() % TOTAL_JORNADAS;
-    while (k1 == k2) {
-        k2 = rand() % TOTAL_JORNADAS;
+    while (true) {
+        int k1 = rand() % TOTAL_JORNADAS;
+        int k2 = rand() % TOTAL_JORNADAS;
+        while (k1 >= k2) {
+            k1 = rand() % TOTAL_JORNADAS;
+            k2 = rand() % TOTAL_JORNADAS;
+        }
+
+        double distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
+        double distancia_final;
+        if (k1 < k2) {
+            if (k2 - k1 == 1) {
+
+                distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+            }
+            else {
+
+                distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+            }
+        }
+
+        cambiaJornadas_h2(k1, k2, viajes);
+        if (comprueba_balance_lyv(viajes)) {
+            double distancia_nueva = distancia_final - distancia_inicial;
+            distancia += distancia_nueva;
+            break;
+        }
+        else {
+            cambiaJornadas_h2(k2, k1, viajes);
+            continue;
+        }
+
     }
-
-    if (k1 > k2)
-        swap(k1, k2);
-
-    double distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-    double distancia_final;
-    if (k2 - k1 == 1) {
-        distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
-    }
-    else {
-        distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
-    }
-
-
-    cambiaJornadas_h2(k1, k2, viajes);
-    distancia += (distancia_final - distancia_inicial);
 
 }
 
@@ -173,24 +210,25 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
             while (j1 < TOTAL_JORNADAS) {
                 int j2 = j1 + 1;
                 while (j2 < TOTAL_JORNADAS) {
+                    distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
                     if (j2 - j1 == 1) {
-                        distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, nuevoCalendario);
-                        distancia_final = calculaDistancias_h2(j2, j1 - 1, j1, nuevoCalendario) + calculaDistancias_h2(j1, j2, j2 + 1, nuevoCalendario);
+                        distancia_final = calculaDistancias_h2(j2, j1 - 1, j1, viajes) + calculaDistancias_h2(j1, j2, j2 + 1, viajes);
                     }
                     else {
-                        distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, nuevoCalendario);
-                        distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, nuevoCalendario) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, nuevoCalendario);
+                        distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, viajes);
                     }
 
-
-                    if (distancia_final < distancia_inicial) {
+                    cambiaJornadas_h2(j1, j2, viajes);
+                    if (distancia_final < distancia_inicial && comprueba_balance_lyv(viajes)) {
                         diferencia = distancia_inicial - distancia_final;
 
                         distancia -= diferencia;
-                        cambiaJornadas_h2(j1, j2, nuevoCalendario);
-                        //cout << "He cambiado la jornada " << j1 + 1 << " por la jornada " << j2 + 1 << " recortando " << diferencia << " millas" << endl;
+
                         j1 = -1;
                         break;
+                    }
+                    else {
+                        cambiaJornadas_h2(j2, j1, viajes);
                     }
                     j2++;
                 }
@@ -220,7 +258,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;

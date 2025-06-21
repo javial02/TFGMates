@@ -448,28 +448,47 @@ void temple_simulado(vector<vector<int>>& viajes, vector<vector<int>>& rivales, 
             M_act = 1;
         }
         for (int i = 0; i < M_act; i++) {
-            int equipo = rand() % N;
-            int k1 = rand() % TOTAL_JORNADAS;
-            int k2 = rand() % TOTAL_JORNADAS;
+            while (true) {
+                int equipo = rand() % N;
+                int k1 = rand() % TOTAL_JORNADAS;
+                int k2 = rand() % TOTAL_JORNADAS;
 
-            while (viajes[equipo][k1] == -1) {
-                k1 = rand() % TOTAL_JORNADAS;
+                while (viajes[equipo][k1] == -1) {
+                    k1 = rand() % TOTAL_JORNADAS;
+                }
+
+                while (viajes[equipo][k2] != -1 || viajes[rivales[equipo][k1]][k2] != -1) {
+                    k2 = rand() % TOTAL_JORNADAS;
+                }
+                int local = viajes[equipo][k1];
+                int visitante = rivales[local][k1];
+
+
+                double dist = distancias(viajes, local, visitante, k1, k2);
+
+
+                actualiza_moviendo(viajes, rivales, k2, k1, local, visitante);
+                vector<int> old_min = minimo_dia;
+                vector<int> old_max = maximo_dia;
+                actualiza_balance(partidos_dia, minimo_dia, maximo_dia, local, k1, k2);
+                actualiza_balance(partidos_dia, minimo_dia, maximo_dia, visitante, k1, k2);
+
+
+                if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante) && comprueba_balance(minimo_dia, maximo_dia) && comprueba_balance_lyv(viajes, local) && comprueba_balance_lyv(viajes, visitante)) {
+                    distancia += dist;
+                    break;
+                }
+                else {
+                    //cout << "aqui" << endl;
+                    actualiza_moviendo(viajes, rivales, k1, k2, local, visitante);
+                    actualiza_balance(partidos_dia, minimo_dia, maximo_dia, local, k2, k1);
+                    actualiza_balance(partidos_dia, minimo_dia, maximo_dia, visitante, k2, k1);
+                    minimo_dia = old_min;
+                    maximo_dia = old_max;
+                    continue;
+                }
             }
-
-            while (viajes[equipo][k2] != -1 || viajes[rivales[equipo][k1]][k2] != -1) {
-                k2 = rand() % TOTAL_JORNADAS;
-            }
-            int local = viajes[equipo][k1];
-            int visitante = rivales[local][k1];
-
             
-            double dist = distancias(viajes, local, visitante, k1, k2);
-
-            
-            actualiza_moviendo(viajes, rivales, k2, k1, local, visitante);
-
-        
-            distancia += dist;
 
         }
 
@@ -503,40 +522,8 @@ void temple_simulado(vector<vector<int>>& viajes, vector<vector<int>>& rivales, 
                                         vector<int> old_max = maximo_dia;
                                         actualiza_balance(partidos_dia, minimo_dia, maximo_dia, local, k, k2);
                                         actualiza_balance(partidos_dia, minimo_dia, maximo_dia, visitante, k, k2);
-                                        if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante) && comprueba_balance(minimo_dia, maximo_dia)) {
+                                        if (!tieneDescansoExcesivo(viajes, local) && !tieneDescansoExcesivo(viajes, visitante) && !tieneTresPartidosSeguidos(viajes, local) && !tieneTresPartidosSeguidos(viajes, visitante) && comprueba_balance(minimo_dia, maximo_dia) && comprueba_balance_lyv(viajes, local) && comprueba_balance_lyv(viajes, visitante)) {
                                             distancia += dist;
-                                            /*cout << "Distancia heur: " << distanciaTotal << "Intercambio: " << k << " - " << k2 << endl;
-                                            double distanciaTotal2 = 0;
-
-                                            for (int i = 0; i < N; i++) {
-                                                int k = 0;
-                                                //int jornada = partido_posterior(viajes, i, k);
-                                                int jornada = viajes[i][k];
-
-                                                while (jornada == -1 && k < NUM_JORNADAS) {
-                                                    k++;
-                                                    jornada = viajes[i][k];
-                                                }
-
-                                                int prev = k;
-                                                //cout << prev << viajes[i][prev] << endl;
-                                                distanciaTotal2 += distanciasNBA[i][viajes[i][prev]];
-                                                jornada = partido_posterior(viajes, i, prev);
-                                                //cout << "aqui2" << endl;
-                                                while (jornada < viajes[i].size()) {
-                                                    distanciaTotal2 += distanciasNBA[viajes[i][prev]][viajes[i][jornada]];
-                                                    prev = jornada;
-                                                    //cout << prev << " " << jornada << endl;
-                                                    jornada = partido_posterior(viajes, i, prev);
-                                                    //cout << jornada << endl;
-                                                }
-                                                //cout << "aqui" << endl;
-                                                distanciaTotal2 += distanciasNBA[viajes[i][prev]][i];
-                                                //cout << "Equipo " << i << ": " << distanciaTotal << endl;
-
-                                            }
-
-                                            cout << distanciaTotal2 << endl;*/
                                             mejorado2 = true;
                                             mejorado = true;
                                             break;
@@ -559,7 +546,7 @@ void temple_simulado(vector<vector<int>>& viajes, vector<vector<int>>& rivales, 
 
                 }
             }
-            if (((dist_ini - distancia) / dist_ini) * 100 < 5) {
+            if (((dist_ini - distancia) / dist_ini) * 100 < 3) {
                 break;
             }
 
@@ -568,6 +555,7 @@ void temple_simulado(vector<vector<int>>& viajes, vector<vector<int>>& rivales, 
 
         if (distancia < distancia_mejor) {
             distancia_mejor = distancia;
+            cout << distancia_mejor << endl;
             mejor_calendario = copiar_calendario(viajes);
 
         }
@@ -585,7 +573,7 @@ void temple_simulado(vector<vector<int>>& viajes, vector<vector<int>>& rivales, 
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -728,8 +716,8 @@ int main() {
                     dist_mejor = distanciaTotal;
                     mejor_calend = copiar_calendario(viajes);
                 }
-                viajes = copiar_calendario(calendario_inicial);
-                distanciaTotal = dist_inicial;
+                //viajes = copiar_calendario(calendario_inicial);
+                //distanciaTotal = dist_inicial;
                 maximo_dia = max_dia_ini;
                 minimo_dia = min_dia_ini;
                 partidos_dia = partidos_dia_ini;

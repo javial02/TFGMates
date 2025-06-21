@@ -120,6 +120,31 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
     return nuevo;
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+    
+
+    return true;
+}
+
 void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M, double alpha) {
     double distancia_mejor = distancia;
     vector<vector<int>> mejor_calendario;
@@ -137,30 +162,40 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
             M = 1;
         }
         for (int i = 0; i < M; i++) {
-            int k1 = rand() % TOTAL_JORNADAS;
-            int k2 = rand() % TOTAL_JORNADAS;
-            while (k1 >= k2) {
-                k1 = rand() % TOTAL_JORNADAS;
-                k2 = rand() % TOTAL_JORNADAS;
-            }
+            while (true) {
+                int k1 = rand() % TOTAL_JORNADAS;
+                int k2 = rand() % TOTAL_JORNADAS;
+                while (k1 >= k2) {
+                    k1 = rand() % TOTAL_JORNADAS;
+                    k2 = rand() % TOTAL_JORNADAS;
+                }
 
-            distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
+                distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
 
-            if (k1 < k2) {
-                if (k2 - k1 == 1) {
+                if (k1 < k2) {
+                    if (k2 - k1 == 1) {
 
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+                        distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+                    }
+                    else {
+
+                        distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                    }
+                }
+
+                cambiaJornadas_h2(k1, k2, viajes);
+                if (comprueba_balance_lyv(viajes)) {
+                    distancia_nueva = distancia_final - distancia_inicial;
+                    distancia += distancia_nueva;
+                    break;
                 }
                 else {
-
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                    cambiaJornadas_h2(k2, k1, viajes);
+                    continue;
                 }
-            }
 
-            cambiaJornadas_h2(k1, k2, viajes);
-            distancia_nueva = distancia_final - distancia_inicial;
-            distancia += distancia_nueva;
-            double dist = distancia;
+            }
+            
 
         }
 
@@ -179,14 +214,17 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
                     distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, viajes);
                 }
 
-
-                if (distancia_final < distancia_inicial) {
+                cambiaJornadas_h2(j1, j2, viajes);
+                if (distancia_final < distancia_inicial && comprueba_balance_lyv(viajes)) {
                     diferencia = distancia_inicial - distancia_final;
 
                     distancia -= diferencia;
-                    cambiaJornadas_h2(j1, j2, viajes);
+                    
                     j1 = -1;
                     break;
+                }
+                else {
+                    cambiaJornadas_h2(j2, j1, viajes);
                 }
                 j2++;
             }
@@ -214,7 +252,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -251,13 +289,19 @@ int main() {
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
 
-    vector<double> t = { 50, 100 };
+    /*vector<double> t = { 50, 100 };
     //double t_inicial = 100;
     double t_minimo = 0.01;
     vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
-    vector<double> alphas = { 0.90, 0.95, 0.99 };
+    vector<double> alphas = { 0.90, 0.95, 0.99 };*/
+    
+    vector<double> t = { 50};
+    //double t_inicial = 100;
+    double t_minimo = 10;
+    vector<int> Ms = { 2};
+    vector<double> alphas = { 0.90};
 
-    ofstream archivo2("Temple_simulado_h2.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("Temple_simulado_h2_nuevo.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -277,15 +321,83 @@ int main() {
                     dist_mejor = distancia;
                     mejor_calend = copiar_calendario(viajes);
                 }
-                viajes = copiar_calendario(calendario_inicial);
-                distancia = dist_inicial;
+                //viajes = copiar_calendario(calendario_inicial);
+                //distancia = dist_inicial;
             }
         }
     }
 
     archivo2.close(); // Cierra el archivo
 
-    imprimeCalendario(mejor_calend, "TS_h2.txt");
+    for (int i = 0; i < N; i++) {
+        int max_sin_jugar = 0;
+        cout << "Equipo: " << i << endl;
+        int counttotal = 0;
+        int countlocal = 0;
+        int countsinjug = 0;
+        for (int k = 0; k < 82; k++) {
+            if (viajes[i][k] != -1) {
+                counttotal++;
+                countsinjug = 0;
+            }
+            if (viajes[i][k] == i) {
+                countlocal++;
+            }
+            if (viajes[i][k] == -1) {
+                countsinjug++;
+                if (countsinjug > max_sin_jugar) {
+                    max_sin_jugar = countsinjug;
+                }
+            }
+            cout << viajes[i][k] << " ";
+        }
+
+        cout << "Partidos totales: " << counttotal << "------ Partidos como local: " << countlocal << "-------" << "Máximo de días de descanso: " << max_sin_jugar << endl;
+        cout << endl;
+    }
+
+    int max_dif = 0;
+    int maximo_part = 0;
+    for (int k = 0; k < viajes[0].size(); k++) {
+        int countsinjug = 0;
+        for (int i = 0; i < N; i++) {
+            if (viajes[i][k] != -1) {
+                equipos[i].partidos_jug++;
+                maximo_part = max(maximo_part, equipos[i].partidos_jug);
+            }
+            max_dif = max(max_dif, maximo_part - equipos[i].partidos_jug);
+            cout << max_dif << " k: " << k << " i: " << i << " partidos jugados: " << equipos[i].partidos_jug << endl;
+        }
+    }
+
+    cout << "Maxima diferencia de partidos " << max_dif << endl;
+    cout << endl;
+
+    
+
+    vector<vector<int>> viajes_final;
+    for (int i = 0; i < N; i++) {
+        vector<int> v;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                v.push_back(viajes[i][k]);
+            }
+        }
+        viajes_final.push_back(v);
+    }
+
+    double distancia_final = 0;
+    for (int i = 0; i < N; i++) {
+        distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
+        for (int k = 0; k < viajes_final[0].size() - 1; k++) {
+            distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
+        }
+    }
+
+    cout << distancia_final << endl;
+
+    if (comprueba_balance_lyv(viajes))
+        cout << "balanceado" << endl;
 
 
     return 0;

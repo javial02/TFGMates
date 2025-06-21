@@ -113,160 +113,189 @@ int main() {
 
         try {
             // Inicializar el entorno de Gurobi
-            GRBEnv env = GRBEnv(true);
-            env.set("LogFile", "nba_schedule.log");
-            env.start();
+        GRBEnv env = GRBEnv(true);
+        env.set("LogFile", "nba_schedule.log");
+        env.start();
 
-            env.set(GRB_IntParam_Seed, cont + time(NULL)); // semilla variable
+        // Crear el modelo
+        GRBModel model = GRBModel(env);
 
-            // Crear el modelo
-            GRBModel model = GRBModel(env);
+        // Variables binarias: x[i][j][k] donde i es el equipo local, j es el visitante y k es la jornada
+        GRBVar x[N][N][TOTAL_JORNADAS];
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (i != j) {
+                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                        x[i][j][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
+                    }
+                }
+            }
+        }
+
+        
+        // Límite máximo de diferencia acumulada entre partidos en casa y fuera por equipo
+        const int MAX_DIF_LOCAL_VISITANTE = 10;
+
+        // Variables auxiliares para la diferencia absoluta en cada jornada
+        GRBVar diff[N][TOTAL_JORNADAS];
+
+        for (int i = 0; i < N; ++i) {
+            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                diff[i][k] = model.addVar(0.0, GRB_INFINITY, 0.0, GRB_INTEGER,"diff_" + to_string(i) + "_k_" + to_string(k));
+            }
+        }
 
 
-            // Variables binarias: x[i][j][k] donde i es el equipo local, j es el visitante y k es la jornada
-            GRBVar x[N][N][TOTAL_JORNADAS];
-            for (int i = 0; i < N; ++i) {
+        // Restricción: Cada equipo solo puede jugar un partido por jornada
+        for (int i = 0; i < N; ++i) {
+            for (int k = 0; k < TOTAL_JORNADAS; k++) {
+
+                // Inicializar contadores para ver la cantidad de partidos que juega cada equipo por jornada
+                GRBLinExpr partidosPorJornada = 0;
+
                 for (int j = 0; j < N; ++j) {
                     if (i != j) {
-                        for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                            x[i][j][k] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x_" + to_string(i) + "_" + to_string(j) + "_" + to_string(k));
-                        }
-                    }
-                }
-            }
-
-
-
-            //Restricción de partidos de la división
-            for (int i = 0; i < N; ++i) {
-                for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
-
-                    // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                    GRBLinExpr partidosEnCasa = 0;
-                    GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_division[j];
-
-                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                        partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
-                        partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
+                        partidosPorJornada += x[i][j][k]; // partidos de i en casa contra j 
+                        partidosPorJornada += x[j][i][k];  // partidos de i fuera de casa contra j
                     }
 
-                    // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra un rival de la misma división que ellos
-                    model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                    model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
                 }
+
+                // Restricción para que cada equipo juegue 1 partido por jornada
+                model.addConstr(partidosPorJornada == 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
             }
+        }
+            
+        
+        // Restricciones: limitar diferencia acumulada entre partidos en casa y fuera
+        for (int i = 0; i < N; ++i) {
+            GRBLinExpr partidosEnCasaAcumulados = 0;
+            GRBLinExpr partidosFueraAcumulados = 0;
 
-            //---------------PARTIDOS FUERA DE LA DIVISIÓN-----------------
-// Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
-            for (int i = 0; i < N; ++i) {
-                for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
-
-                    // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                    GRBLinExpr partidosEnCasa = 0;
-                    GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_conf1[j];
-
-                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                        partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
-                        partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
+            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                // Actualizar acumulados hasta jornada k
+                for (int j = 0; j < N; ++j) {
+                    if (i != j) {
+                        partidosEnCasaAcumulados += x[i][j][k];     // Partido en casa
+                        partidosFueraAcumulados += x[j][i][k];      // Partido fuera
                     }
-
-                    // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra  cada uno de los 6 rivales a los que se enfrentan de este tipo en su misma conferencia
-                    model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                    model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
                 }
+
+                // Definir la diferencia absoluta con variables auxiliares
+                model.addConstr(partidosEnCasaAcumulados - partidosFueraAcumulados <= diff[i][k],"diff_pos_" + to_string(i) + "_" + to_string(k));
+                model.addConstr(partidosFueraAcumulados - partidosEnCasaAcumulados <= diff[i][k],"diff_neg_" + to_string(i) + "_" + to_string(k));
+
+                // Límite de desequilibrio máximo permitido
+                model.addConstr(diff[i][k] <= MAX_DIF_LOCAL_VISITANTE,"max_diff_" + to_string(i) + "_" + to_string(k));
             }
+        }
 
 
 
-            // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (2c y 1f)
-            for (int i = 0; i < N; ++i) {
-                for (int j = 0; j < NUM_RIVALES_CONF_2; j++) {
+        // Restricción: Partidos dentro de la división
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
 
-                    // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                    GRBLinExpr partidosEnCasa = 0;
-                    GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_conf2[j];
+                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                int rival = equipos[i].rivales_division[j];
 
-                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                        partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
-                        partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
-                    }
-
-                    // Restricción para que cada equipo juegue 2 partidos en casa y 1 fuera de casa contra cada uno de los 2 rivales a los que se enfrentan de este tipo en su misma conferencia
-                    model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                    model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
+                    partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
                 }
+
+                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra un rival de la misma división que ellos
+                model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
+                model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
+        }
 
 
+        //---------------PARTIDOS FUERA DE LA DIVISIÓN-----------------
+        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 4 veces
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
 
-            // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (1c y 2f)
-            for (int i = 0; i < N; ++i) {
-                for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
+                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                int rival = equipos[i].rivales_conf1[j];
 
-                    // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                    GRBLinExpr partidosEnCasa = 0;
-                    GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_conf3[j];
-
-                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                        partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
-                        partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
-                    }
-
-                    // Restricción para que cada equipo juegue 1 partido en casa y 2 fuera de casa contra cada uno de los 2 rivales a los que se enfrentan de este tipo en su misma conferencia
-                    model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                    model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
+                    partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
                 }
+
+                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra  cada uno de los 6 rivales a los que se enfrentan de este tipo en su misma conferencia
+                model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
+                model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
+        }
 
 
-            // Restricción: Partidos contra los equipos de la conferencia contraria
-            for (int i = 0; i < N; ++i) {
-                for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
+        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (2c y 1f)
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < NUM_RIVALES_CONF_2; j++) {
 
-                    // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
-                    GRBLinExpr partidosEnCasa = 0;
-                    GRBLinExpr partidosFuera = 0;
-                    int rival = equipos[i].rivales_interconf[j];
+                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                int rival = equipos[i].rivales_conf3[j];
 
-                    for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                        partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
-                        partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
-                    }
-
-                    // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra cada uno de los 15 rivales a los que se enfrentan de la otra conferencia
-                    model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
-                    model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
+                    partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
                 }
+
+                // Restricción para que cada equipo juegue 2 partidos en casa y 1 fuera de casa contra cada uno de los 2 rivales a los que se enfrentan de este tipo en su misma conferencia
+                model.addConstr(partidosEnCasa == 2, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
+                model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
+        }
 
 
+        // Restricción: Partidos dentro de la misma conferencia contra los que juegan 3 veces (1c y 2f)
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
 
+                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                int rival = equipos[i].rivales_conf2[j];
 
-
-
-            // Restricción: Cada equipo solo puede jugar un partido por jornada
-            for (int i = 0; i < N; ++i) {
-                for (int k = 0; k < TOTAL_JORNADAS; k++) {
-
-                    // Inicializar contadores para ver la cantidad de partidos que juega cada equipo por jornada
-                    GRBLinExpr partidosPorJornada = 0;
-
-                    for (int j = 0; j < N; ++j) {
-                        if (i != j) {
-                            partidosPorJornada += x[i][j][k]; // partidos de i en casa contra j 
-                            partidosPorJornada += x[j][i][k];  // partidos de i fuera de casa contra j
-                        }
-
-                    }
-
-                    // Restricción para que cada equipo juegue 1 partido por jornada
-                    model.addConstr(partidosPorJornada == 1, "UnPartidoPorJornada_" + to_string(i) + "_Jornada_" + to_string(k));
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
+                    partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
                 }
+
+                // Restricción para que cada equipo juegue 1 partido en casa y 2 fuera de casa contra cada uno de los 2 rivales a los que se enfrentan de este tipo en su misma conferencia
+                model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
+                model.addConstr(partidosFuera == 2, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
             }
+        }
+
+
+        // Restricción: Partidos contra los equipos de la conferencia contraria
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
+
+                // Inicializar contadores para ver la cantidad de partidos que juegan en casa y fuera contra cada equipo de la división
+                GRBLinExpr partidosEnCasa = 0;
+                GRBLinExpr partidosFuera = 0;
+                int rival = equipos[i].rivales_interconf[j];
+
+                for (int k = 0; k < TOTAL_JORNADAS; ++k) {
+                    partidosEnCasa += x[i][rival][k]; // partidos de i en casa contra j
+                    partidosFuera += x[rival][i][k];  // partidos de i fuera de casa contra j
+                }
+
+                // Restricción para que cada equipo juegue 2 partidos en casa y 2 fuera de casa contra cada uno de los 15 rivales a los que se enfrentan de la otra conferencia
+                model.addConstr(partidosEnCasa == 1, "PartidosEnCasa_" + to_string(i) + "_" + to_string(rival));
+                model.addConstr(partidosFuera == 1, "PartidosFuera_" + to_string(i) + "_" + to_string(rival));
+            }
+        }
 
             // Función objetivo vacía (solo generar el calendario)
             model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);

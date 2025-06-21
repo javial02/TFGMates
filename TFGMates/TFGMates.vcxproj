@@ -155,7 +155,9 @@
     <ClInclude Include="datosNBA_8eq_div.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TS_h4.cpp" />
+    <ClCompile Include="Tabu_h2.cpp" />
+    <ClCompile Include="Tabu_h2_3.cpp" />
+    <ClCompile Include="Tabu_h3.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

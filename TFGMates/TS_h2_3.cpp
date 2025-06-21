@@ -189,6 +189,52 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
     return nuevo;
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
+    int local = 0;
+    int visitante = 0;
+    for (int k = 0; k < viajes[i].size(); k++) {
+        if (viajes[i][k] != -1) {
+            if (viajes[i][k] == i) {
+                local++;
+            }
+            else {
+                visitante++;
+            }
+        }
+
+        if (abs(visitante - local) > 10) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M2, double alpha) {
 
     vector<vector<int>> modelo;
@@ -214,147 +260,177 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
         }
         for (int iter = 0; iter < M2; iter++) {
             //---------------------------------------------Heuristica 2-------------------------------------------------
-            int k1 = rand() % TOTAL_JORNADAS;
-            int k2 = rand() % TOTAL_JORNADAS;
-            while (k1 == k2) {
-                k2 = rand() % TOTAL_JORNADAS;
-            }
-
-            if (k1 < k2) {
-                if (k2 - k1 == 1) {
-                    distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
-                }
-                else {
-                    distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
-                }
-            }
-            else {
-                if (k1 - k2 == 1) {
-                    distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-                    distancia_final = calculaDistancias_h2(k1, k2 - 1, k2, viajes) + calculaDistancias_h2(k2, k1, k1 + 1, viajes);
-                }
-                else {
-                    distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-                    distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+            while (true) {
+                int k1 = rand() % TOTAL_JORNADAS;
+                int k2 = rand() % TOTAL_JORNADAS;
+                while (k1 >= k2) {
+                    k1 = rand() % TOTAL_JORNADAS;
+                    k2 = rand() % TOTAL_JORNADAS;
                 }
 
-            }
+                distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
 
-            cambiaJornadas_h2(k1, k2, viajes);
-            distancia_nueva = distancia_final - distancia_inicial;
-            distancia += distancia_nueva;
+                if (k1 < k2) {
+                    if (k2 - k1 == 1) {
 
-
-            //-------------------------------Heuristica 4-----------------------------------
-            int e1 = rand() % N;
-            int e2 = rand() % N;
-            while (e1 == e2) {
-                e2 = rand() % N;
-            }
-
-            int jornada = buscaPartido(viajes, e1, e2);
-            int j_partido = -1;
-            double dist_nueva = 0;
-            double dist_actual = 0;
-            double max = 0;
-            bool ok = false;
-            for (int k = 0; k < TOTAL_JORNADAS && !ok; k++) {
-                if (viajes[e2][k] == e2 && viajes[e1][k] == e2) {
-                    if (k - jornada == 1) {
-                        dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias_h3(k, k - 1, k + 1, viajes, e2, e1);
-                        dist_nueva = calculaDistancias_h3(k, k, k + 1, viajes, e1, e2) + calculaDistancias_h3(jornada, jornada - 1, jornada, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
-                    }
-                    else if (k - jornada == -1) {
-                        dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias_h3(k, k - 1, k + 1, viajes, e2, e1);
-                        dist_nueva = calculaDistancias_h3(k, k - 1, k, viajes, e1, e2) + calculaDistancias_h3(jornada, jornada, jornada + 1, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+                        distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
                     }
                     else {
-                        dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias_h3(k, k - 1, k + 1, viajes, e2, e1);
-                        dist_nueva = calculaDistancias_h3(k, k - 1, k + 1, viajes, e1, e2) + calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
-                    }
 
-                    max = dist_actual - dist_nueva;
-                    j_partido = k;
-                    ok = true;
+                        distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                    }
                 }
+
+                cambiaJornadas_h2(k1, k2, viajes);
+                if (comprueba_balance_lyv(viajes)) {
+                    distancia_nueva = distancia_final - distancia_inicial;
+                    distancia += distancia_nueva;
+                    break;
+                }
+                else {
+                    cambiaJornadas_h2(k2, k1, viajes);
+                    continue;
+                }
+
             }
 
 
-            cambiaJornadas_h3(jornada, j_partido, viajes, e1, e2);
-            distancia -= max;
+            //-------------------------------Heuristica 3-----------------------------------
+            while (true) {
+                int e1 = rand() % N;
+                int e2 = rand() % N;
+                while (e1 == e2) {
+                    e2 = rand() % N;
+                }
+
+                int jornada = buscaPartido(viajes, e1, e2);
+
+                int j_partido = -1;
+                double dist_nueva = 0;
+                double dist_actual = 0;
+                double max = 0;
+                for (int k = 0; k < TOTAL_JORNADAS; k++) {
+                    if (viajes[e2][k] == e2 && viajes[e1][k] == e2) {
+                        if (k - jornada == 1) {
+                            dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias_h3(k, k - 1, k + 1, viajes, e2, e1);
+                            dist_nueva = calculaDistancias_h3(k, k, k + 1, viajes, e1, e2) + calculaDistancias_h3(jornada, jornada - 1, jornada, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+                        }
+                        else if (k - jornada == -1) {
+                            dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias_h3(k, k - 1, k + 1, viajes, e2, e1);
+                            dist_nueva = calculaDistancias_h3(k, k - 1, k, viajes, e1, e2) + calculaDistancias_h3(jornada, jornada, jornada + 1, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+                        }
+                        else {
+                            dist_actual = calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e1, e2) + calculaDistancias_h3(k, k - 1, k + 1, viajes, e2, e1);
+                            dist_nueva = calculaDistancias_h3(k, k - 1, k + 1, viajes, e1, e2) + calculaDistancias_h3(jornada, jornada - 1, jornada + 1, viajes, e2, e1);   //aqui el local pasa a ser visitante y viceversa
+                        }
+
+                        max = dist_actual - dist_nueva;
+                        j_partido = k;
+                    }
+                }
+
+
+
+                if (comprueba_balance_lyv(viajes, e1) && comprueba_balance_lyv(viajes, e2)) {
+                    distancia -= max;
+                    break;
+                }
+                else {
+                    cambiaJornadas_h3(j_partido, jornada, viajes, e1, e2);
+                    continue;
+                }
+
+            }
+
 
 
         }
 
 
-        double dist_ini;
+        double dist_inicial;
         do {
-            dist_ini = distancia;
+            dist_inicial = distancia;
+
+            //---------------------Heurística de intercambio de jornadas--------------------------
             int j1 = 0;
             double diferencia = 0;
             double distancia_inicial = 0;
             double distancia_final = 0;
             while (j1 < TOTAL_JORNADAS) {
                 int j2 = j1 + 1;
-
                 while (j2 < TOTAL_JORNADAS) {
-
+                    distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
                     if (j2 - j1 == 1) {
-                        distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
                         distancia_final = calculaDistancias_h2(j2, j1 - 1, j1, viajes) + calculaDistancias_h2(j1, j2, j2 + 1, viajes);
                     }
                     else {
-                        distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
                         distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, viajes);
                     }
 
-
-                    if (distancia_final < distancia_inicial) {
+                    cambiaJornadas_h2(j1, j2, viajes);
+                    if (distancia_final < distancia_inicial && comprueba_balance_lyv(viajes)) {
                         diferencia = distancia_inicial - distancia_final;
 
                         distancia -= diferencia;
-                        cambiaJornadas_h2(j1, j2, viajes);
-                        //cout << "He cambiado la jornada " << j1 + 1 << " por la jornada " << j2 + 1 << " recortando " << diferencia << " millas" << endl;
+
                         j1 = -1;
                         break;
+                    }
+                    else {
+                        cambiaJornadas_h2(j2, j1, viajes);
                     }
                     j2++;
                 }
                 j1++;
-
-
             }
 
-            double diferencia2 = 0;
+            cout << "Distancia tras cambios de jornada: " << distancia << endl;
+
+            //--------------------Heurística de partidos como local y visitante---------------------
+
+            //double diferencia = 0;
             int i = 0;
 
-            while (i < N) {
-                int j = 0;
-                while (j < N) {
-                    if (i != j) {
-                        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+            bool mejora = true;
+
+            while (mejora) {
+                mejora = false;
+
+                for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+                    for (int i = 0; i < N; i++) {
+                        for (int j = 0; j < N; j++) {
                             if (viajes[i][k] == i && viajes[j][k] == i) {
                                 int cambio;
-                                diferencia2 = buscaPartido_h3(viajes, i, j, k, cambio);
+                                diferencia = buscaPartido_h3(viajes, i, j, k, cambio);
                                 if (cambio != -1) {
-                                    distancia -= diferencia2;
                                     cambiaJornadas_h3(k, cambio, viajes, i, j);
-                                    //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
-                                    j = -1;
-                                    break;
+                                    if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
+                                        distancia -= diferencia;
+                                        mejora = true;
+                                        //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
+                                        j = -1;
+                                        break;
+                                    }
+                                    else {
+                                        cambiaJornadas_h3(cambio, k, viajes, i, j);
+                                    }
                                 }
                             }
                         }
+                        if (mejora) {
+                            break;
+                        }
                     }
-                    j++;
+                    if (mejora) {
+                        break;
+                    }
                 }
-                i++;
             }
 
+            cout << "Distancia tras cambios de local y visitante: " << distancia << endl;
 
-        } while (distancia < dist_ini);
+
+        } while (distancia < dist_inicial);
 
 
 

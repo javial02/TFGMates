@@ -146,12 +146,33 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo.close();
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
+    int local = 0;
+    int visitante = 0;
+    for (int k = 0; k < viajes[i].size(); k++) {
+        if (viajes[i][k] != -1) {
+            if (viajes[i][k] == i) {
+                local++;
+            }
+            else {
+                visitante++;
+            }
+        }
+
+        if (abs(visitante - local) > 10) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -196,14 +217,21 @@ int main() {
         for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
             for (int i = 0; i < N; i++) {
                 for (int j = 0; j < N; j++) {
-                    if (i != j && viajes[i][k] == i && viajes[j][k] == i) {
+                    if (viajes[i][k] == i && viajes[j][k] == i) {
                         int cambio;
                         diferencia = buscaPartido_h3(viajes, i, j, k, cambio);
                         if (cambio != -1) {
-                            distancia -= diferencia;
                             cambiaJornadas_h3(k, cambio, viajes, i, j);
-                            mejora = true;
-                            break;
+                            if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
+                                distancia -= diferencia;
+                                mejora = true;
+                                //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
+                                j = -1;
+                                break;
+                            }
+                            else {
+                                cambiaJornadas_h3(cambio, k, viajes, i, j);
+                            }
                         }
                     }
                 }

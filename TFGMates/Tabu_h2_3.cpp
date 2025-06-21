@@ -187,6 +187,52 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
     return nuevo;
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
+    int local = 0;
+    int visitante = 0;
+    for (int k = 0; k < viajes[i].size(); k++) {
+        if (viajes[i][k] != -1) {
+            if (viajes[i][k] == i) {
+                local++;
+            }
+            else {
+                visitante++;
+            }
+        }
+
+        if (abs(visitante - local) > 10) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
+
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
 double buscaPartido_tabu(const vector<vector<int>>& viajes, int local, int visitante, int jornada, int& j_partido) {
     j_partido = -1;
     double dist_nueva = 0;
@@ -253,7 +299,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                 double diferencia = distancia_inicial - distancia_final;
 
                 //cout << diferencia << " " << mejor_dist_vec << endl;
-                if (diferencia > mejor_dist_vec) {
+                if (diferencia > mejor_dist_vec && comprueba_balance_lyv(viajes)) {
                     mejor_dist_vec = diferencia;
                     mejor_vecino = copiar_calendario(viajes);
                     mejor_mov = { 1,k1,k2 };
@@ -279,7 +325,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                         if (cambio != -1) {
                             cambiaJornadas_h3(k, cambio, viajes, i, j);
 
-                            if (diferencia > mejor_dist_vec) {
+                            if (diferencia > mejor_dist_vec && comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
                                 //cout << "cambio: " << cambio << endl;
                                 mejor_dist_vec = diferencia;
                                 mejor_vecino = copiar_calendario(viajes);
@@ -325,7 +371,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;

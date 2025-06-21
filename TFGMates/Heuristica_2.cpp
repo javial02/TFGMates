@@ -90,12 +90,35 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo.close();
 }
 
+bool comprueba_balance_lyv(const vector<vector<int>>& viajes) {
 
+    for (int i = 0; i < N; i++) {
+        int local = 0;
+        int visitante = 0;
+        for (int k = 0; k < viajes[i].size(); k++) {
+            if (viajes[i][k] != -1) {
+                if (viajes[i][k] == i) {
+                    local++;
+                }
+                else {
+                    visitante++;
+                }
+            }
+
+            if (abs(visitante - local) > 10) {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
 
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -129,33 +152,36 @@ int main() {
 
     cout << "Distancia inicial: " << distancia << endl;
 
-    int k1 = 0;
+    int j1 = 0;
     double diferencia = 0;
     double distancia_inicial = 0;
     double distancia_final = 0;
-    while (k1 < TOTAL_JORNADAS) {
-        int k2 = k1 + 1;
-        while (k2 < TOTAL_JORNADAS) {
-
-            distancia_inicial = calculaDistancias_h2(k1, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k2, k2 - 1, k2 + 1, viajes);
-            if (k2 - k1 == 1) {
-                distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
+    while (j1 < TOTAL_JORNADAS) {
+        int j2 = j1 + 1;
+        while (j2 < TOTAL_JORNADAS) {
+            distancia_inicial = calculaDistancias_h2(j1, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j2, j2 - 1, j2 + 1, viajes);
+            if (j2 - j1 == 1) {
+                distancia_final = calculaDistancias_h2(j2, j1 - 1, j1, viajes) + calculaDistancias_h2(j1, j2, j2 + 1, viajes);
             }
             else {
-                distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
+                distancia_final = calculaDistancias_h2(j2, j1 - 1, j1 + 1, viajes) + calculaDistancias_h2(j1, j2 - 1, j2 + 1, viajes);
             }
 
-
-            if (distancia_final < distancia_inicial) {
+            cambiaJornadas_h2(j1, j2, viajes);
+            if (distancia_final < distancia_inicial && comprueba_balance_lyv(viajes)) {
                 diferencia = distancia_inicial - distancia_final;
+
                 distancia -= diferencia;
-                cambiaJornadas_h2(k1, k2, viajes);
-                k1 = -1;
+
+                j1 = -1;
                 break;
             }
-            k2++;
+            else {
+                cambiaJornadas_h2(j2, j1, viajes);
+            }
+            j2++;
         }
-        k1++;
+        j1++;
     }
 
     cout << "Distancia final: " << distancia << endl;
