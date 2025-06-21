@@ -30,9 +30,12 @@
     <ClInclude Include="datosNBA_8eq_div.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="datosNBA163.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Heuristica_1.cpp">
+    <ClCompile Include="TS_h4.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

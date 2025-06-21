@@ -1,18 +1,7 @@
-//EN ESTE MODELO NO SE ESTÁ CONTANDO CON LA DISTANCIA RECORRIDA DE LOS EQUIPOS VISITANTES EN LA PRIMERA JORNADA DE LA TEMPORADA.
-//SE DA POR HECHO DE QUE SE EMPIEZA A CONTAR A PARTIR DE LA JORNADA 1
-
-#include <vector>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
-#include <algorithm>
-#include "gurobi_c++.h"
 #include "datosNBA.h"
 
 
+// ----------------------Funciones Heurística 2---------------------------------
 double calculaDistancias_h2(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
     double total_dist = 0;
     for (int i = 0; i < N; i++) {
@@ -52,34 +41,86 @@ int calculaRival(const vector<vector<int>> viajes, int jornada, int rival) {
 }
 
 
-void imprimeCalendario(const vector<vector<int>> viajes) {
+void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
+    ofstream archivo(n_archivo);
+
+    if (!archivo) {
+        cerr << "Error al abrir el archivo" << std::endl;
+    }
     for (int k = 0; k < TOTAL_JORNADAS; k++) {
-        cout << "Jornada " << k + 1 << ":" << endl;
+        archivo << "Jornada " << k + 1 << ":" << endl;
         for (int i = 0; i < N; i++) {
             if (viajes[i][k] == i) {
                 int rival = calculaRival(viajes, k, i);
-                cout << equipos[i].nombre << " vs " << equipos[rival].nombre << endl;
+                archivo << equipos[i].nombre << " vs " << equipos[rival].nombre << endl;
             }
         }
-
-        cout << "----------------------" << endl;
+        archivo << "----------------------" << endl;
     }
-}
 
-vector<vector<int>> copiar_calendario(const vector<vector<int>> nuevo) {
-    vector<vector<int>> copia;
+    double distancia = 0;
+    vector<double> dist_eq;
     for (int i = 0; i < N; i++) {
-        vector<int> recorrido;
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            int aux = nuevo[i][k];
-            recorrido.push_back(aux);
+        double distancia_eq = 0;
+        for (int k = 0; k < TOTAL_JORNADAS - 1; k++) {
+            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+            distancia_eq += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
         }
-        copia.push_back(recorrido);
+        dist_eq.push_back(distancia_eq);
     }
-    return copia;
+
+    for (int i = 0; i < N; i++) {
+        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][TOTAL_JORNADAS - 1]];
+        dist_eq[i] += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][TOTAL_JORNADAS - 1]];
+    }
+
+    archivo << "Distancia final: " << distancia << endl;
+
+    double maximo = -numeric_limits<double>::max();
+    double minimo = numeric_limits<double>::max();
+    int idxmin = -1;
+    int idxmax = -1;
+
+    for (int i = 0; i < N; i++) {
+        archivo << equipos[i].nombre << ": " << dist_eq[i] << " millas recorridas" << endl;
+        if (dist_eq[i] > maximo) {
+            maximo = dist_eq[i];
+            idxmax = i;
+        }
+        if (dist_eq[i] < minimo) {
+            minimo = dist_eq[i];
+            idxmin = i;
+        }
+    }
+
+    archivo << "Equipo con menor distancia recorrida: " << equipos[idxmin].nombre << " con " << dist_eq[idxmin] << " millas" << endl;
+    archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
+
+
+    double disteste = 0;
+    double distoeste = 0;
+
+    for (int i = 0; i < N; i++) {
+        if (i < 15) {
+            disteste += dist_eq[i];
+        }
+        else {
+            distoeste += dist_eq[i];
+        }
+    }
+
+    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
+    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
+
+
+    archivo.close();
 }
 
-void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_inicial, double t_minima, int M, double alpha) {
+vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
+    return nuevo;
+}
+
+void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M, double alpha) {
     double distancia_mejor = distancia;
     vector<vector<int>> mejor_calendario;
 
@@ -90,7 +131,7 @@ void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_in
     double distancia_final;
     while (t_inicial > t_minima) {
         if (t_inicial < 60 && t_inicial > 25) {
-            M = M/2;
+            M = M / 2;
         }
         else if (t_inicial < 25) {
             M = 1;
@@ -107,11 +148,11 @@ void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_in
 
             if (k1 < k2) {
                 if (k2 - k1 == 1) {
-                    
+
                     distancia_final = calculaDistancias_h2(k2, k1 - 1, k1, viajes) + calculaDistancias_h2(k1, k2, k2 + 1, viajes);
                 }
                 else {
-                
+
                     distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
                 }
             }
@@ -144,7 +185,6 @@ void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_in
 
                     distancia -= diferencia;
                     cambiaJornadas_h2(j1, j2, viajes);
-                    //cout << "He cambiado la jornada " << j1 + 1 << " por la jornada " << j2 + 1 << " recortando " << diferencia << " millas" << endl;
                     j1 = -1;
                     break;
                 }
@@ -154,21 +194,19 @@ void temple_simulado(vector<vector<int>>& viajes, double &distancia, double t_in
         }
 
 
-        //cout << "Distancia tras cambios de jornada: " << distancia << endl;
-
         if (distancia < distancia_mejor) {
             distancia_mejor = distancia;
-            //mejor_calendario = copiar_calendario(viajes);
+            mejor_calendario = copiar_calendario(viajes);
+
         }
 
 
         t_inicial *= alpha;
-        //cout << t_inicial << endl;
 
     }
 
     distancia = distancia_mejor;
-    //viajes = copiar_calendario(mejor_calendario);
+    viajes = copiar_calendario(mejor_calendario);
 }
 
 
@@ -205,7 +243,7 @@ int main() {
     }
 
     for (int i = 0; i < N; i++) {
-        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][81]];
+        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][TOTAL_JORNADAS - 1]];
     }
 
     cout << "Distancia inicial dada por el modelo: " << distancia << endl;
@@ -213,10 +251,7 @@ int main() {
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
 
-    vector<vector<int>> mejor_calendario;
-    double dist_mejor = distancia;
-
-    vector<double> t = { 50, 100};
+    vector<double> t = { 50, 100 };
     //double t_inicial = 100;
     double t_minimo = 0.01;
     vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
@@ -229,6 +264,8 @@ int main() {
         return 1;
     }
 
+    double dist_mejor = numeric_limits<double>::max();
+    vector<vector<int>> mejor_calend;
 
     for (double t_inicial : t) {
         for (int M : Ms) {
@@ -236,25 +273,21 @@ int main() {
                 temple_simulado(viajes, distancia, t_inicial, t_minimo, M, alpha);
                 archivo2 << "T = " << t_inicial << ", M = " << M << ", alpha = " << alpha << " -> Mejor Distancia: " << distancia << endl;
                 cout << "T = " << t_inicial << ", M = " << M << ", alpha = " << alpha << " -> Mejor Distancia: " << distancia << endl;
+                if (distancia < dist_mejor) {
+                    dist_mejor = distancia;
+                    mejor_calend = copiar_calendario(viajes);
+                }
                 viajes = copiar_calendario(calendario_inicial);
                 distancia = dist_inicial;
             }
         }
     }
-   
-
-    
-
-    /*for (int i = 0; i < N; i++) {
-        for (int k = 0; k < TOTAL_JORNADAS; k++) {
-            archivo2 << viajes[i][k] << " ";
-        }
-        archivo2 << endl;
-    }*/
 
     archivo2.close(); // Cierra el archivo
 
-    
+    imprimeCalendario(mejor_calend, "TS_h2.txt");
+
+
     return 0;
 }
 

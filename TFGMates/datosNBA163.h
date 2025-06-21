@@ -1,14 +1,19 @@
-//EN ESTE MODELO NO SE ESTÁ CONTANDO CON LA DISTANCIA RECORRIDA DE LOS EQUIPOS VISITANTES EN LA PRIMERA JORNADA DE LA TEMPORADA.
-//SE DA POR HECHO DE QUE SE EMPIEZA A CONTAR A PARTIR DE LA JORNADA 1
+#ifndef DATOS_NBA_163_H
+#define DATOS_NBA__163_H
 
 #include <vector>
 #include <string>
 #include <iostream>
-#include <algorithm> 
-#include <random>    
+#include <fstream>
+#include <cstdlib>
 #include <ctime>
-#include <unordered_set>
-//#include "gurobi_c++.h"
+#include <cmath>
+#include <algorithm>
+#include <unordered_map>
+#include <set>
+#include <tuple>
+#include <limits>
+#include "gurobi_c++.h"
 
 using namespace std;
 
@@ -20,7 +25,8 @@ const int NUM_RIVALES_CONF_1 = 6;               //Número de rivales fuera de la 
 const int NUM_RIVALES_CONF_2 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (2c y 1f)
 const int NUM_RIVALES_CONF_3 = 2;               //Número de rivales fuera de la división, en la misma conferencia, con los que se juegan 3 partidos (1c y 2f)
 const int NUM_EQUIPOS_CONFERENCIA = 15;         //Número de equipos por conferencia
-const int TOTAL_JORNADAS = 82;                  //Número de jornadas
+const int TOTAL_JORNADAS = 163;                  //Número de jornadas
+const int NUM_DIVISIONES = 6;                   //Número de divisiones
 
 struct InfoEquipo {
     int id;                                     //Numeración de equipos
@@ -32,45 +38,41 @@ struct InfoEquipo {
     vector<int> rivales_conf2;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (2c y 1f)
     vector<int> rivales_conf3;				    //Lista de rivales de su misma conferencia pero distinta división con los que juega 3 partidos (1c y 2f)
     vector<int> rivales_interconf;			    //Lista de rivales que no son de su conferencia
-};
-
-struct Partido {
-    int local;
-    int visitante;
+    int partidos_jug;
 };
 
 
 vector<InfoEquipo> equipos = {
-    {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
-    {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {3,"New York Knicks", "Este", "Atlantico", {0, 1, 2, 4}, {7, 8, 11, 13, 6, 14}, {5, 12}, {10, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {4,"Toronto Raptors", "Este", "Atlantico", {0, 1, 2, 3}, {7, 8, 14, 12, 10, 9}, {6, 11}, {5, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {5,"Chicago Bulls", "Este", "Central", {6, 7, 8, 9}, {0, 2, 1, 13, 11, 10}, {4, 14}, {3, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} },
-    {6,"Indiana Pacers", "Este", "Central", {5, 7, 8, 9}, {2, 3, 1, 14, 12, 11}, {0, 10}, {4, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {7,"Cleveland Cavaliers", "Este", "Central", {5, 6, 8, 9}, {4, 0, 3, 10, 12, 14}, {1, 13}, {2, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {8,"Detroit Pistons", "Este", "Central", {5, 6, 7, 9}, {4, 0, 3, 10, 12, 13}, {2, 11}, {1, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {9,"Milwaukee Bucks", "Este", "Central", {5, 6, 7, 8}, {4, 2, 1, 14, 11, 13}, {3, 12}, {0, 10} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {10,"Charlotte Hornets", "Este", "Sudeste", {11, 12, 13, 14}, {4, 0, 1, 7, 8, 5}, {3, 9}, {2, 6} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {11,"Washington Wizards", "Este", "Sudeste", {10, 12, 13, 14}, {2, 3, 1, 6, 9, 5}, {0, 7}, {4, 8} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {12,"Orlando Magic", "Este", "Sudeste", {10, 11, 13, 14}, {4, 0, 2, 6, 7, 8}, {1, 5}, {3, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {13,"Atlanta Hawks", "Este", "Sudeste", {10, 11, 12, 14}, {2, 3, 1, 9, 8, 5}, {4, 6}, {0, 7} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {14,"Miami Heat", "Este", "Sudeste", {10, 11, 12, 13}, {4, 0, 3, 6, 7, 9}, {2, 8}, {1, 5} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29}  },
-    {15,"Oklahoma City Thunder", "Oeste", "Noroeste", {16, 17, 18, 19}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {16,"Minnesota Timberwolves", "Oeste", "Noroeste", {15, 17, 18, 19}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {17,"Utah Jazz", "Oeste", "Noroeste", {15, 16, 18, 19}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {18,"Denver Nuggets", "Oeste", "Noroeste", {15, 16, 17, 19}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {19,"Portland Trail Blazers", "Oeste", "Noroeste", {15, 16, 17, 18}, {28, 25, 27, 22, 23, 20}, {29, 21}, {26, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {20,"New Orleans Pelicans", "Oeste", "Sudoeste", {21, 22, 23, 24}, {19, 15, 18, 28, 25, 29}, {17, 26}, {16, 27} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {21,"Memphis Grizzlies", "Oeste", "Sudoeste", {20, 22, 23, 24}, {15, 16, 17, 28, 27, 29}, {18, 25}, {19, 26} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {22,"San Antonio Spurs", "Oeste", "Sudoeste", {20, 21, 23, 24}, {19, 16, 17, 25, 26, 27}, {15, 28}, {18, 29} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {23,"Dallas Mavericks", "Oeste", "Sudoeste", {20, 21, 22, 24}, {19, 17, 18, 25, 26, 29}, {16, 27}, {15, 28} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {24,"Houston Rockets", "Oeste", "Sudoeste", {20, 21, 22, 23}, {15, 16, 18, 28, 26, 27}, {19, 29}, {17, 25} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {25,"Los Angeles Lakers", "Oeste", "Pacifico", {26, 27, 28, 29}, {19, 17, 18, 22, 23, 20}, {16, 24}, {15, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {26,"Los Angeles Clippers", "Oeste", "Pacifico", {25, 27, 28, 29}, {15, 17, 18, 24, 23, 22}, {19, 21}, {16, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {27,"Sacramento Kings", "Oeste", "Pacifico", {25, 26, 28, 29}, {19, 16, 17, 24, 22, 21}, {15, 20}, {18, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {28,"Golden State Warriors", "Oeste", "Pacifico", {25, 26, 27, 29}, {19, 15, 16, 21, 24, 20}, {18, 23}, {17, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} },
-    {29,"Phoenix Suns", "Oeste", "Pacifico", {25, 26, 27, 28}, {15, 16, 18, 23, 20, 21}, {17, 22}, {19, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14} }
+    {0,"Boston Celtics", "Este", "Atlantico", {1, 2, 3, 4}, {8, 7, 5, 14, 10, 12}, {9, 13}, {6, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0 },
+    {1,"Brooklyn Nets", "Este", "Atlantico", {0, 2, 3, 4}, {13, 6, 9, 10, 5, 11}, {8, 14}, {7, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {2,"Philadelphia 76ers", "Este", "Atlantico", {0, 1, 3, 4}, {6, 9, 5, 13, 12, 11}, {7, 10}, {8, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {3,"New York Knicks", "Este", "Atlantico", {0, 1, 2, 4}, {7, 8, 11, 13, 6, 14}, {5, 12}, {10, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {4,"Toronto Raptors", "Este", "Atlantico", {0, 1, 2, 3}, {7, 8, 14, 12, 10, 9}, {6, 11}, {5, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {5,"Chicago Bulls", "Este", "Central", {6, 7, 8, 9}, {0, 2, 1, 13, 11, 10}, {4, 14}, {3, 12} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0 },
+    {6,"Indiana Pacers", "Este", "Central", {5, 7, 8, 9}, {2, 3, 1, 14, 12, 11}, {0, 10}, {4, 13} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} ,0 },
+    {7,"Cleveland Cavaliers", "Este", "Central", {5, 6, 8, 9}, {4, 0, 3, 10, 12, 14}, {1, 13}, {2, 11} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} ,0 },
+    {8,"Detroit Pistons", "Este", "Central", {5, 6, 7, 9}, {4, 0, 3, 10, 12, 13}, {2, 11}, {1, 14} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {9,"Milwaukee Bucks", "Este", "Central", {5, 6, 7, 8}, {4, 2, 1, 14, 11, 13}, {3, 12}, {0, 10} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {10,"Charlotte Hornets", "Este", "Sudeste", {11, 12, 13, 14}, {4, 0, 1, 7, 8, 5}, {3, 9}, {2, 6} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29} ,0 },
+    {11,"Washington Wizards", "Este", "Sudeste", {10, 12, 13, 14}, {2, 3, 1, 6, 9, 5}, {0, 7}, {4, 8} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {12,"Orlando Magic", "Este", "Sudeste", {10, 11, 13, 14}, {4, 0, 2, 6, 7, 8}, {1, 5}, {3, 9} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {13,"Atlanta Hawks", "Este", "Sudeste", {10, 11, 12, 14}, {2, 3, 1, 9, 8, 5}, {4, 6}, {0, 7} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {14,"Miami Heat", "Este", "Sudeste", {10, 11, 12, 13}, {4, 0, 3, 6, 7, 9}, {2, 8}, {1, 5} , {15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29},0  },
+    {15,"Oklahoma City Thunder", "Oeste", "Noroeste", {16, 17, 18, 19}, {28, 26, 29, 21, 24, 20}, {23, 25}, {27, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {16,"Minnesota Timberwolves", "Oeste", "Noroeste", {15, 17, 18, 19}, {28, 27, 29, 21, 24, 22}, {26, 20}, {25, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {17,"Utah Jazz", "Oeste", "Noroeste", {15, 16, 18, 19}, {26, 25, 27, 21, 22, 23}, {28, 24}, {29, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {18,"Denver Nuggets", "Oeste", "Noroeste", {15, 16, 17, 19}, {25, 26, 29, 24, 23, 20}, {27, 22}, {28, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {19,"Portland Trail Blazers", "Oeste", "Noroeste", {15, 16, 17, 18}, {28, 25, 27, 22, 23, 20}, {29, 21}, {26, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {20,"New Orleans Pelicans", "Oeste", "Sudoeste", {21, 22, 23, 24}, {19, 15, 18, 28, 25, 29}, {17, 26}, {16, 27} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {21,"Memphis Grizzlies", "Oeste", "Sudoeste", {20, 22, 23, 24}, {15, 16, 17, 28, 27, 29}, {18, 25}, {19, 26} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {22,"San Antonio Spurs", "Oeste", "Sudoeste", {20, 21, 23, 24}, {19, 16, 17, 25, 26, 27}, {15, 28}, {18, 29} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {23,"Dallas Mavericks", "Oeste", "Sudoeste", {20, 21, 22, 24}, {19, 17, 18, 25, 26, 29}, {16, 27}, {15, 28} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {24,"Houston Rockets", "Oeste", "Sudoeste", {20, 21, 22, 23}, {15, 16, 18, 28, 26, 27}, {19, 29}, {17, 25} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {25,"Los Angeles Lakers", "Oeste", "Pacifico", {26, 27, 28, 29}, {19, 17, 18, 22, 23, 20}, {16, 24}, {15, 21} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {26,"Los Angeles Clippers", "Oeste", "Pacifico", {25, 27, 28, 29}, {15, 17, 18, 24, 23, 22}, {19, 21}, {16, 20} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {27,"Sacramento Kings", "Oeste", "Pacifico", {25, 26, 28, 29}, {19, 16, 17, 24, 22, 21}, {15, 20}, {18, 23} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {28,"Golden State Warriors", "Oeste", "Pacifico", {25, 26, 27, 29}, {19, 15, 16, 21, 24, 20}, {18, 23}, {17, 22} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 },
+    {29,"Phoenix Suns", "Oeste", "Pacifico", {25, 26, 27, 28}, {15, 16, 18, 23, 20, 21}, {17, 22}, {19, 24} , {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},0 }
 };
 
 vector<vector<double>> distanciasNBA = {
@@ -106,128 +108,4 @@ vector<vector<double>> distanciasNBA = {
     {2651.26, 2429.33, 2345.09, 2410.02, 2243.44, 1754.12, 1706.17, 2013.85, 2006.03, 1829.15, 2090.87, 2302.2, 2134.7, 1846, 2358.36, 959.81, 1645.74, 659.75, 863.56, 1334.76, 1521.16, 1424.6, 984.45, 1064.58, 1177.05, 373.52, 373.52, 755.3, 736.92, 0}
 };
 
-
-vector<vector<Partido>> crear_partidos() {
-    vector<vector<Partido>> partidos;
-
-    for (int i = 0; i < N; i++) {
-
-        int p_local = 0;
-        int p_visitante = 0;
-        vector<Partido> p;
-        int rival;
-
-        for (int j = 0; j < EQUIPOS_POR_DIVISION - 1; j++) {
-            rival = equipos[i].rivales_division[j];
-            p.push_back({ i, rival });
-            p.push_back({ i, rival });
-            p.push_back({ rival, i });
-            p.push_back({ rival, i });
-            p_local += 2;
-            p_visitante += 2;
-        }
-
-        for (int j = 0; j < NUM_RIVALES_CONF_1; j++) {
-            rival = equipos[i].rivales_conf1[j];
-            p.push_back({ i, rival });
-            p.push_back({ i, rival });
-            p.push_back({ rival, i });
-            p.push_back({ rival, i });
-            p_local += 2;
-            p_visitante += 2;
-        }
-
-        for (int j = 0; j < NUM_RIVALES_CONF_2; j++) {
-            rival = equipos[i].rivales_conf2[j];
-            p.push_back({ i, rival });
-            p.push_back({ i, rival });
-            p.push_back({ rival, i });
-            p_local += 2;
-            p_visitante += 1;
-        }
-
-        for (int j = 0; j < NUM_RIVALES_CONF_3; j++) {
-            rival = equipos[i].rivales_conf3[j];
-            p.push_back({ i, rival });
-            p.push_back({ rival, i });
-            p.push_back({ rival, i });
-            p_local += 1;
-            p_visitante += 2;
-        }
-
-        for (int j = 0; j < NUM_EQUIPOS_CONFERENCIA; j++) {
-            rival = equipos[i].rivales_interconf[j];
-            p.push_back({ i, rival });
-            p.push_back({ rival, i });
-            p_local += 1;
-            p_visitante += 1;
-        }
-
-        cout << equipos[i].nombre << "-> P.Local: " << p_local << " - P.Visitante: " << p_visitante << endl;
-        partidos.push_back(p);
-    }
-
-    return partidos;
-}
-
-
-vector<vector<Partido>> asignar_jornadas(vector<vector<Partido>> partidos) {
-    vector<vector<Partido>> calendario(TOTAL_JORNADAS);
-
-    vector<Partido> p_unicos;
-    //partidos unicos, es decir, solo añadimos los partidos de local de todos los equipos para no repetir
-    for (int i = 0; i < N; i++) {
-        for (auto& p : partidos[i]) {
-            if (p.local == i) {
-                p_unicos.push_back(p);
-            }
-        }
-    }
-
-    int count_no_asignados = 0;
-    do {
-        //mezclamos los partidos para que haya aleatoriedad
-        shuffle(p_unicos.begin(), p_unicos.end(), default_random_engine(time(0)));
-
-        //set para llevar la cuenta de los equipos que ya hemos asignado en cada jornada
-        vector<unordered_set<int>> equipos_asignados(TOTAL_JORNADAS);
-        count_no_asignados = 0;
-        int index = 0;
-        for (auto& p : p_unicos) {
-            bool asignado = false;
-
-            for (int i = 0; i < TOTAL_JORNADAS; i++) {
-                int k = (index + i) % TOTAL_JORNADAS;
-                if (!equipos_asignados[k].count(p.local) && !equipos_asignados[k].count(p.visitante)) {
-                    calendario[k].push_back(p);
-                    equipos_asignados[k].insert(p.local);
-                    equipos_asignados[k].insert(p.visitante);
-                    asignado = true;
-                    break;
-                }
-            }
-
-            if (!asignado) {
-                //cout << "No se ha podido asignar el partido entre " << p.local << " vs " << p.visitante << endl;
-                count_no_asignados++;
-            }
-
-            index = (index + 1) % TOTAL_JORNADAS;
-        }
-
-        cout << "Numero de partidos no asignados: " << count_no_asignados << endl;
-
-    } while (count_no_asignados != 0);
-    
-
-    return calendario;
-
-}
-
-int main() {
-
-    vector<vector<Partido>> partidos = crear_partidos();
-    vector<vector<Partido>> calendario = asignar_jornadas(partidos);
-    return 0;
-}
-
+#endif
