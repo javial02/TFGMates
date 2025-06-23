@@ -316,7 +316,7 @@ void cambiaJornadast3(vector<vector<int>>& viajes, double& distancia) {
             }
         }
 
-
+        cambiaJornadas_h3(jornada, j_partido, viajes, e1, e2);
 
         if (comprueba_balance_lyv(viajes, e1) && comprueba_balance_lyv(viajes, e2)) {
             distancia -= max;
@@ -345,25 +345,25 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
         int k = 1;
         while (k <= 3) {
-            vector<vector<int>> nuevoCalendario = copiar_calendario(mejor_calendario);
+            viajes = copiar_calendario(mejor_calendario);
             distancia = distancia_mejor;
             if (k == 1) {
                 for (int i = 0; i < k1; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);           //REVISAR ESTO!!!!!!!
-                    cambiaJornadast3(nuevoCalendario, distancia);
+                    cambiaJornadast2(viajes, distancia);           //REVISAR ESTO!!!!!!!
+                    cambiaJornadast3(viajes, distancia);
 
                 }
             }
             else if (k == 2) {
                 for (int i = 0; i < k2; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);
-                    cambiaJornadast3(nuevoCalendario, distancia);
+                    cambiaJornadast2(viajes, distancia);
+                    cambiaJornadast3(viajes, distancia);
                 }
             }
             else {
                 for (int i = 0; i < k3; i++) {
-                    cambiaJornadast2(nuevoCalendario, distancia);
-                    cambiaJornadast3(nuevoCalendario, distancia);
+                    cambiaJornadast2(viajes, distancia);
+                    cambiaJornadast3(viajes, distancia);
                 }
             }
 
@@ -434,7 +434,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
             if (distancia < distancia_mejor) {
                 distancia_mejor = distancia;
-                mejor_calendario = copiar_calendario(nuevoCalendario);
+                mejor_calendario = copiar_calendario(viajes);
                 iter_sin_mej = 0;
                 k = 1;
             }
@@ -498,8 +498,6 @@ int main() {
         return 1;
     }
 
-    int max_iter = 100;
-    int lim_sin_mej = 10;
     int k1 = 2;
     int k2 = 3;
     int k3 = 4;

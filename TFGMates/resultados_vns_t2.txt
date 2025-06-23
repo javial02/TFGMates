@@ -1,2 +1,0 @@
-2.30775e+06
-Max iter = 100, limite sin mej = 10, Distancia -> 1.84672e+06

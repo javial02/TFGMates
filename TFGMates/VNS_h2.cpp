@@ -1,4 +1,4 @@
-#include "datosNBA.h"
+ #include "datosNBA.h"
 
 // ----------------------Funciones Heurística 2---------------------------------
 double calculaDistancias_h2(int k, int kantes, int kdespues, const vector<vector<int>>& viajes) {
@@ -195,12 +195,12 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
         int k = 1;
         while (k <= 3) {
-            vector<vector<int>> nuevoCalendario = copiar_calendario(mejor_calendario);
+            viajes = copiar_calendario(mejor_calendario);
             distancia = distancia_mejor;
 
             int cambios = (k == 1) ? k1 : (k == 2) ? k2 : k3;
             for (int i = 0; i < cambios; i++) {
-                cambiaJornadast2(nuevoCalendario, distancia);
+                cambiaJornadast2(viajes, distancia);
             }
 
             int j1 = 0;
@@ -237,7 +237,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
             if (distancia < distancia_mejor) {
                 distancia_mejor = distancia;
-                mejor_calendario = copiar_calendario(nuevoCalendario);
+                mejor_calendario = copiar_calendario(viajes);
                 iter_sin_mej = 0;
                 k = 1;
             }
@@ -295,11 +295,6 @@ int main() {
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
 
-    vector<double> t = { 50, 100 };
-    //double t_inicial = 100;
-    double t_minimo = 0.01;
-    vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
-    vector<double> alphas = { 0.90, 0.95, 0.99 };
 
     ofstream archivo2("resultados_vns_h2.txt"); // Abre el archivo en modo lectura
 

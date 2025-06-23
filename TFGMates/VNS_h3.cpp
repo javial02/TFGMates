@@ -219,7 +219,7 @@ void cambiaJornadast3(vector<vector<int>>& viajes, double& distancia) {
             }
         }
 
-
+        cambiaJornadas_h3(jornada, j_partido, viajes, e1, e2);
 
         if (comprueba_balance_lyv(viajes, e1) && comprueba_balance_lyv(viajes, e2)) {
             distancia -= max;
@@ -247,25 +247,26 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
     for (int iter = 0; iter < max_iter && iter_sin_mej < limite_sin_mej; iter++) {
         int k = 1;
         while (k <= 3) {
-            vector<vector<int>> nuevoCalendario = copiar_calendario(mejor_calendario);
+            viajes = copiar_calendario(mejor_calendario);
             distancia = distancia_mejor;
+            //cout << distancia << endl;;
             if (k == 1) {
                 for (int i = 0; i < k1; i++) {
-                    cambiaJornadast3(nuevoCalendario, distancia);
+                    cambiaJornadast3(viajes, distancia);
                 }
             }
             else if (k == 2) {
                 for (int i = 0; i < k2; i++) {
-                    cambiaJornadast3(nuevoCalendario, distancia);
+                    cambiaJornadast3(viajes, distancia);
                 }
             }
             else {
                 for (int i = 0; i < k3; i++) {
-                    cambiaJornadast3(nuevoCalendario, distancia);
+                    cambiaJornadast3(viajes, distancia);
                 }
             }
 
-
+            //cout << distancia << endl;
             double diferencia = 0;
             int i = 0;
 
@@ -300,7 +301,8 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
             if (distancia < distancia_mejor) {
                 distancia_mejor = distancia;
-                mejor_calendario = copiar_calendario(nuevoCalendario);
+                //cout << "Mejora: " << distancia_mejor << endl;
+                mejor_calendario = copiar_calendario(viajes);
                 iter_sin_mej = 0;
                 k = 1;
             }

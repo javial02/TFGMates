@@ -174,13 +174,14 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
     double distancia_final;
     int count = 0;
     while (t_inicial > t_minima) {
+        int M_act = M;
         if (t_inicial < 60 && t_inicial > 25) {
-            M = 2;
+            M_act = M/2;
         }
         else if (t_inicial < 25) {
-            M = 1;
+            M_act = 1;
         }
-        for (int iter = 0; iter < M; iter++) {
+        for (int iter = 0; iter < M_act; iter++) {
 
             int e1 = rand() % N;
             int e2 = rand() % N;

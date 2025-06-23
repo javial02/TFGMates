@@ -130,13 +130,14 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
     double distancia_inicial;
     double distancia_final;
     while (t_inicial > t_minima) {
+        int M_act = M;
         if (t_inicial < 60 && t_inicial > 25) {
-            M = M / 2;
+            M_act = M / 2;
         }
         else if (t_inicial < 25) {
-            M = 1;
+            M_act = 1;
         }
-        for (int i = 0; i < M; i++) {
+        for (int i = 0; i < M_act; i++) {
             int k1 = rand() % TOTAL_JORNADAS;
             int k2 = rand() % TOTAL_JORNADAS;
             while (k1 >= k2) {

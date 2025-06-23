@@ -235,7 +235,7 @@ bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
     return true;
 }
 
-void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M2, double alpha) {
+void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M, double alpha) {
 
     vector<vector<int>> modelo;
     modelo = copiar_calendario(viajes);
@@ -250,15 +250,15 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
     double distancia_inicial;
     double distancia_final;
     int count = 0;
-    while (t_inicial > 0.01) {
-        //int M_actual = max(1, (int)(M * t_inicial / T_inicial));
+    while (t_inicial > t_minima) {
+        int M_act = M;
         if (t_inicial < 60 && t_inicial > 25) {
-            M2 = 2;
+            M_act = M/ 2;
         }
         else if (t_inicial < 25) {
-            M2 = 1;
+            M_act = 1;
         }
-        for (int iter = 0; iter < M2; iter++) {
+        for (int iter = 0; iter < M_act; iter++) {
             //---------------------------------------------Heuristica 2-------------------------------------------------
             while (true) {
                 int k1 = rand() % TOTAL_JORNADAS;
@@ -330,7 +330,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
                 }
 
 
-
+                cambiaJornadas_h3(jornada, j_partido, viajes, e1, e2);
                 if (comprueba_balance_lyv(viajes, e1) && comprueba_balance_lyv(viajes, e2)) {
                     distancia -= max;
                     break;
@@ -384,7 +384,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
                 j1++;
             }
 
-            cout << "Distancia tras cambios de jornada: " << distancia << endl;
+            //cout << "Distancia tras cambios de jornada: " << distancia << endl;
 
             //--------------------Heurística de partidos como local y visitante---------------------
 
@@ -427,7 +427,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
                 }
             }
 
-            cout << "Distancia tras cambios de local y visitante: " << distancia << endl;
+            //cout << "Distancia tras cambios de local y visitante: " << distancia << endl;
 
 
         } while (distancia < dist_inicial);
@@ -443,6 +443,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
 
 
         t_inicial *= alpha;
+        cout << t_inicial << endl;
 
     }
 
@@ -459,7 +460,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
 
 int main() {
 
-    ifstream archivo("calendario.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_balanceado_lyv.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -496,11 +497,11 @@ int main() {
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
 
-    vector<double> t = { 50, 100 };
+    vector<double> t = { 50,100 };
     //double t_inicial = 100;
     double t_minimo = 0.01;
-    vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
-    vector<double> alphas = { 0.90, 0.95, 0.99 };
+    vector<int> Ms = { 2, 8};
+    vector<double> alphas = { 0.90, 0.95 };
 
     ofstream archivo2("Temple_simulado_h2_3.txt"); // Abre el archivo en modo lectura
 

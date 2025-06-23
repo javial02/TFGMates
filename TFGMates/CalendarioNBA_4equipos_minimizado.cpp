@@ -36,6 +36,95 @@ vector<vector<double>> distanciasNBA = {
     {213.78, 5.45, 96.67, 0},
 };
 
+int calculaRival(const vector<vector<int>> viajes, int jornada, int rival) {
+    bool encontrado = false;
+    int ind = -1;
+    for (int i = 0; i < N && !encontrado; i++) {
+        if (viajes[i][jornada] == rival && i != rival) {
+            ind = i;
+            encontrado = true;
+        }
+    }
+
+    return ind;
+}
+
+void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
+    ofstream archivo(n_archivo);
+
+    if (!archivo) {
+        cerr << "Error al abrir el archivo" << std::endl;
+    }
+    for (int k = 0; k < TOTAL_JORNADAS_REALES; k++) {
+        archivo << "Jornada " << k + 1 << ":" << endl;
+        for (int i = 0; i < N; i++) {
+            if (viajes[i][k] == i) {
+                int rival = calculaRival(viajes, k, i);
+                archivo << equipos[i].nombre << " vs " << equipos[rival].nombre << endl;
+            }
+        }
+        archivo << "----------------------" << endl;
+    }
+
+    double distancia = 0;
+    vector<double> dist_eq;
+    for (int i = 0; i < N; i++) {
+        double distancia_eq = 0;
+        for (int k = 0; k < TOTAL_JORNADAS_REALES - 1; k++) {
+            distancia += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+            distancia_eq += distanciasNBA[viajes[i][k]][viajes[i][k + 1]];
+        }
+        dist_eq.push_back(distancia_eq);
+    }
+
+    for (int i = 0; i < N; i++) {
+        distancia += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][TOTAL_JORNADAS_REALES - 1]];
+        dist_eq[i] += distanciasNBA[i][viajes[i][0]] + distanciasNBA[i][viajes[i][TOTAL_JORNADAS_REALES - 1]];
+    }
+
+    archivo << "Distancia final: " << distancia << endl;
+
+    double maximo = -numeric_limits<double>::max();
+    double minimo = numeric_limits<double>::max();
+    int idxmin = -1;
+    int idxmax = -1;
+
+    for (int i = 0; i < N; i++) {
+        archivo << equipos[i].nombre << ": " << dist_eq[i] << " millas recorridas" << endl;
+        if (dist_eq[i] > maximo) {
+            maximo = dist_eq[i];
+            idxmax = i;
+        }
+        if (dist_eq[i] < minimo) {
+            minimo = dist_eq[i];
+            idxmin = i;
+        }
+    }
+
+    archivo << "Equipo con menor distancia recorrida: " << equipos[idxmin].nombre << " con " << dist_eq[idxmin] << " millas" << endl;
+    archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
+
+
+    double disteste = 0;
+    double distoeste = 0;
+
+    for (int i = 0; i < N; i++) {
+        if (i < 15) {
+            disteste += dist_eq[i];
+        }
+        else {
+            distoeste += dist_eq[i];
+        }
+    }
+
+    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
+    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
+
+
+    archivo.close();
+}
+
+
 int main() {
     try {
         GRBEnv env = GRBEnv(true);
@@ -151,6 +240,28 @@ int main() {
 
         if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
             
+            vector<vector<int>> viajes;
+            bool encontrado;
+
+
+            for (int i = 0; i < N; i++) {
+                vector<int> recorrido;
+                for (int k = 1; k < TOTAL_JORNADAS - 1; k++) {
+                    encontrado = false;
+                    for (int j = 0; j < N && !encontrado; j++) {
+                        if (y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
+                            recorrido.push_back(j);
+                            encontrado = true;
+                        }
+                    }
+                }
+
+                viajes.push_back(recorrido);
+
+            }
+
+            imprimeCalendario(viajes, "Modelo_2_4eq.txt");
+
 
             ofstream archivo("Calendario_modelo_4_equipos.txt");  // Crea o abre el archivo
 
@@ -175,6 +286,7 @@ int main() {
             }
 
             archivo.close();
+
 
             // Inicialización
             vector<vector<double>> millasPorJornada(equipos.size(), vector<double>(TOTAL_JORNADAS, 0));

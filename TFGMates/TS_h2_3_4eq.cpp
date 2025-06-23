@@ -189,7 +189,7 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>>& nuevo) {
     return nuevo;
 }
 
-void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M2, double alpha) {
+void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_inicial, double t_minima, int M, double alpha) {
 
     vector<vector<int>> modelo;
     modelo = copiar_calendario(viajes);
@@ -205,14 +205,14 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
     double distancia_final;
     int count = 0;
     while (t_inicial > 0.01) {
-        //int M_actual = max(1, (int)(M * t_inicial / T_inicial));
+        int M_act = M;
         if (t_inicial < 60 && t_inicial > 25) {
-            M2 = 2;
+            Mact =  M/2;
         }
         else if (t_inicial < 25) {
-            M2 = 1;
+            Mact = 1;
         }
-        for (int iter = 0; iter < M2; iter++) {
+        for (int iter = 0; iter < Mact; iter++) {
             //---------------------------------------------Heuristica 2-------------------------------------------------
             int k1 = rand() % TOTAL_JORNADAS;
             int k2 = rand() % TOTAL_JORNADAS;

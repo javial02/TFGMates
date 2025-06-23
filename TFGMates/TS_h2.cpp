@@ -155,13 +155,14 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
     double distancia_inicial;
     double distancia_final;
     while (t_inicial > t_minima) {
+        int M_act = M;
         if (t_inicial < 60 && t_inicial > 25) {
-            M = M / 2;
+            M_act = M / 2;
         }
         else if (t_inicial < 25) {
-            M = 1;
+            M_act = 1;
         }
-        for (int i = 0; i < M; i++) {
+        for (int i = 0; i < M_act; i++) {
             while (true) {
                 int k1 = rand() % TOTAL_JORNADAS;
                 int k2 = rand() % TOTAL_JORNADAS;
@@ -289,19 +290,14 @@ int main() {
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
 
-    /*vector<double> t = { 50, 100 };
+    vector<double> t = { 50, 100 };
     //double t_inicial = 100;
     double t_minimo = 0.01;
-    vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
-    vector<double> alphas = { 0.90, 0.95, 0.99 };*/
+    vector<int> Ms = { 2, 8 };
+    vector<double> alphas = {0.90, 0.95};
     
-    vector<double> t = { 50};
-    //double t_inicial = 100;
-    double t_minimo = 10;
-    vector<int> Ms = { 2};
-    vector<double> alphas = { 0.90};
 
-    ofstream archivo2("Temple_simulado_h2_nuevo.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("Temple_simulado_h2.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -321,83 +317,15 @@ int main() {
                     dist_mejor = distancia;
                     mejor_calend = copiar_calendario(viajes);
                 }
-                //viajes = copiar_calendario(calendario_inicial);
-                //distancia = dist_inicial;
+                viajes = copiar_calendario(calendario_inicial);
+                distancia = dist_inicial;
             }
         }
     }
 
     archivo2.close(); // Cierra el archivo
 
-    for (int i = 0; i < N; i++) {
-        int max_sin_jugar = 0;
-        cout << "Equipo: " << i << endl;
-        int counttotal = 0;
-        int countlocal = 0;
-        int countsinjug = 0;
-        for (int k = 0; k < 82; k++) {
-            if (viajes[i][k] != -1) {
-                counttotal++;
-                countsinjug = 0;
-            }
-            if (viajes[i][k] == i) {
-                countlocal++;
-            }
-            if (viajes[i][k] == -1) {
-                countsinjug++;
-                if (countsinjug > max_sin_jugar) {
-                    max_sin_jugar = countsinjug;
-                }
-            }
-            cout << viajes[i][k] << " ";
-        }
-
-        cout << "Partidos totales: " << counttotal << "------ Partidos como local: " << countlocal << "-------" << "Máximo de días de descanso: " << max_sin_jugar << endl;
-        cout << endl;
-    }
-
-    int max_dif = 0;
-    int maximo_part = 0;
-    for (int k = 0; k < viajes[0].size(); k++) {
-        int countsinjug = 0;
-        for (int i = 0; i < N; i++) {
-            if (viajes[i][k] != -1) {
-                equipos[i].partidos_jug++;
-                maximo_part = max(maximo_part, equipos[i].partidos_jug);
-            }
-            max_dif = max(max_dif, maximo_part - equipos[i].partidos_jug);
-            cout << max_dif << " k: " << k << " i: " << i << " partidos jugados: " << equipos[i].partidos_jug << endl;
-        }
-    }
-
-    cout << "Maxima diferencia de partidos " << max_dif << endl;
-    cout << endl;
-
-    
-
-    vector<vector<int>> viajes_final;
-    for (int i = 0; i < N; i++) {
-        vector<int> v;
-        for (int k = 0; k < viajes[i].size(); k++) {
-            if (viajes[i][k] != -1) {
-                v.push_back(viajes[i][k]);
-            }
-        }
-        viajes_final.push_back(v);
-    }
-
-    double distancia_final = 0;
-    for (int i = 0; i < N; i++) {
-        distancia_final += distanciasNBA[i][viajes_final[i][0]] + distanciasNBA[i][viajes_final[i][81]];
-        for (int k = 0; k < viajes_final[0].size() - 1; k++) {
-            distancia_final += distanciasNBA[viajes_final[i][k]][viajes_final[i][k + 1]];
-        }
-    }
-
-    cout << distancia_final << endl;
-
-    if (comprueba_balance_lyv(viajes))
-        cout << "balanceado" << endl;
+    imprimeCalendario(mejor_calend,"TS_h2.txt");
 
 
     return 0;
