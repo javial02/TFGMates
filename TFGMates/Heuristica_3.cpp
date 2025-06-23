@@ -247,7 +247,7 @@ int main() {
 
     cout << "Distancia final: " << distancia << endl;
 
-    imprimeCalendario(viajes, "Heuristica_3.txt");
+    //imprimeCalendario(viajes, "Heuristica_3.txt");
 
     return 0;
 }

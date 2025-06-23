@@ -277,8 +277,8 @@ int main() {
             }
         }
 
-        //model.setObjective(distanciaTotal, GRB_MINIMIZE);
-        model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
+        model.setObjective(distanciaTotal, GRB_MINIMIZE);
+        //model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
         model.optimize();
 
         if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
