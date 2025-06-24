@@ -118,7 +118,7 @@ Philadelphia 76ers vs New York Knicks
 Oklahoma City Thunder vs Minnesota Timberwolves
 Utah Jazz vs Denver Nuggets
 ----------------------
-Distancia final: 49538.6
+Distancia final: 49536.6
 Boston Celtics: 6273.45 millas recorridas
 Brooklyn Nets: 6431.94 millas recorridas
 Philadelphia 76ers: 6292.4 millas recorridas

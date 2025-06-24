@@ -155,7 +155,7 @@
     <ClInclude Include="datosNBA_8eq_div.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Prieba.cpp" />
+    <ClCompile Include="Insercion.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
