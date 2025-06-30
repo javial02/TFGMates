@@ -224,7 +224,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
         double mejor_dist_vec = -numeric_limits<double>::max();
         tuple<int, int, int> mejor_mov;
         vector<vector<int>> mejor_vecino;
-        //cout << "aqui" << endl;
+        
 
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N && j != i; j++) {
@@ -235,12 +235,12 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                     if (viajes[i][k] == i && viajes[j][k] == i) {
                         int cambio;
                         int diferencia = buscaPartido_tabu(viajes, i, j, k, cambio);
-                        //cout << "dif " << i << " " << j << " " << k  << endl;
+                        
                         if (cambio != -1) {
                             cambiaJornadas_h3(k, cambio, viajes, i, j);
 
                             if (diferencia > mejor_dist_vec && comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
-                                //cout << "cambio: " << cambio << endl;
+                                
                                 mejor_dist_vec = diferencia;
                                 mejor_vecino = copiar_calendario(viajes);
                                 mejor_mov = { 2,i,j };
@@ -252,12 +252,12 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                     }
                 }
             }
-            //cout << "i: " << i << endl;
+            
         }
 
-        //cout << "aqui" << endl;
+        
         viajes = copiar_calendario(mejor_vecino);
-        // cout << "hola2" << endl;
+       
         distancia -= mejor_dist_vec;
 
         lista_tabu.insert(mejor_mov);
@@ -269,10 +269,10 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
         if (distancia < distancia_mejor) {
             mejor_calendario = copiar_calendario(viajes);
             distancia_mejor = distancia;
-            //cout << "[It: " << iter << "] Mejor distancia: " << distancia_mejor << endl;
+            
         }
 
-        //cout << "hola" << endl;
+        
 
     }
 

@@ -164,22 +164,6 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
 
 
-    double disteste = 0;
-    double distoeste = 0;
-
-    for (int i = 0; i < N; i++) {
-        if (i < 15) {
-            disteste += dist_eq[i];
-        }
-        else {
-            distoeste += dist_eq[i];
-        }
-    }
-
-    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
-    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
-
-
     archivo.close();
 }
 
@@ -248,11 +232,11 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                     distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
                 }
 
-                //vector<vector<int>> vecino = copiar_calendario(viajes);
+                
                 cambiaJornadas_h2(k1, k2, viajes);
                 double diferencia = distancia_inicial - distancia_final;
 
-                //cout << diferencia << " " << mejor_dist_vec << endl;
+                
                 if (diferencia > mejor_dist_vec) {
                     mejor_dist_vec = diferencia;
                     mejor_vecino = copiar_calendario(viajes);
@@ -261,7 +245,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                 }
                 cambiaJornadas_h2(k2, k1, viajes);
 
-                //cout << k1 << " " << k2 <<  endl;
+                
 
             }
         }
@@ -275,12 +259,12 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                     if (viajes[i][k] == i && viajes[j][k] == i) {
                         int cambio;
                         int diferencia = buscaPartido_tabu(viajes, i, j, k, cambio);
-                        //cout << "dif " << i << " " << j << " " << k  << endl;
+                        
                         if (cambio != -1) {
                             cambiaJornadas_h3(k, cambio, viajes, i, j);
 
                             if (diferencia > mejor_dist_vec) {
-                                //cout << "cambio: " << cambio << endl;
+                                
                                 mejor_dist_vec = diferencia;
                                 mejor_vecino = copiar_calendario(viajes);
                                 mejor_mov = { 2,i,j };
@@ -296,9 +280,9 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
 
 
 
-        //cout << "aqui" << endl;
+        
         viajes = copiar_calendario(mejor_vecino);
-        // cout << "hola2" << endl;
+        
         distancia -= mejor_dist_vec;
 
         lista_tabu.insert(mejor_mov);
@@ -310,10 +294,10 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
         if (distancia < distancia_mejor) {
             mejor_calendario = copiar_calendario(viajes);
             distancia_mejor = distancia;
-            cout << "[It: " << iter << "] Mejor distancia: " << distancia_mejor << endl;
+           
         }
 
-        //cout << "hola" << endl;
+       
 
     }
 
@@ -325,7 +309,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
 
 int main() {
 
-    ifstream archivo("Calendario_8eq.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_8eq.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;

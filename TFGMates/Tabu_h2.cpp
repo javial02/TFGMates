@@ -172,11 +172,8 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                     distancia_final = calculaDistancias_h2(k2, k1 - 1, k1 + 1, viajes) + calculaDistancias_h2(k1, k2 - 1, k2 + 1, viajes);
                 }
 
-                //vector<vector<int>> vecino = copiar_calendario(viajes);
                 cambiaJornadas_h2(k1, k2, viajes);
                 double diferencia = distancia_inicial - distancia_final;
-
-                //cout << diferencia << " " << mejor_dist_vec << endl;
                 if (diferencia > mejor_dist_vec && comprueba_balance_lyv(viajes)) {
                     mejor_dist_vec = diferencia;
                     mejor_vecino = copiar_calendario(viajes);
@@ -185,14 +182,11 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
                 }
                 cambiaJornadas_h2(k2, k1, viajes);
 
-                //cout << k1 << " " << k2 <<  endl;
-
             }
         }
 
-        //cout << "hola" << endl;
         viajes = copiar_calendario(mejor_vecino);
-        //cout << "hola2" << endl;
+
         distancia -= mejor_dist_vec;
 
         lista_tabu.insert(mejor_mov);
@@ -204,7 +198,7 @@ void busqueda_tabu(vector<vector<int>>& viajes, double& distancia, int max_iter,
         if (distancia < distancia_mejor) {
             mejor_calendario = copiar_calendario(viajes);
             distancia_mejor = distancia;
-            //cout << "[It: " << iter << "] Mejor distancia: " << distancia_mejor << endl;
+
         }
     }
 

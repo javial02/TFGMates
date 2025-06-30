@@ -77,22 +77,6 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
 
 
-    double disteste = 0;
-    double distoeste = 0;
-
-    for (int i = 0; i < N; i++) {
-        if (i < 15) {
-            disteste += dist_eq[i];
-        }
-        else {
-            distoeste += dist_eq[i];
-        }
-    }
-
-    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
-    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
-
-
     archivo.close();
 }
 

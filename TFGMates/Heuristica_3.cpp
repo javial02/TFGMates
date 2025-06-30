@@ -225,7 +225,6 @@ int main() {
                             if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
                                 distancia -= diferencia;
                                 mejora = true;
-                                //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
                                 j = -1;
                                 break;
                             }
@@ -247,7 +246,7 @@ int main() {
 
     cout << "Distancia final: " << distancia << endl;
 
-    //imprimeCalendario(viajes, "Heuristica_3.txt");
+    imprimeCalendario(viajes, "Heuristica_3.txt");
 
     return 0;
 }

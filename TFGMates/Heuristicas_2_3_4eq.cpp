@@ -164,7 +164,7 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
 
 int main() {
 
-    ifstream archivo("Calendario_4eq.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_4eq.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
