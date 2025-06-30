@@ -129,5 +129,4 @@ Utah Jazz: 5741.18 millas recorridas
 Denver Nuggets: 5730.78 millas recorridas
 Equipo con menor distancia recorrida: Denver Nuggets con 5730.78 millas
 Equipo con mayor distancia recorrida: Minnesota Timberwolves con 7152.43 millas
-Media de millas recorridas Conferencia Este: 3368.94 Millas Totales: 50534.1
-Media de millas recorridas Conferencia Oeste: 0 Millas Totales: 0
+

@@ -53,5 +53,4 @@ Philadelphia 76ers: 1445.31 millas recorridas
 New York Knicks: 1246.4 millas recorridas
 Equipo con menor distancia recorrida: New York Knicks con 1246.4 millas
 Equipo con mayor distancia recorrida: Philadelphia 76ers con 1445.31 millas
-Media de millas recorridas Conferencia Este: 347.628 Millas Totales: 5214.42
-Media de millas recorridas Conferencia Oeste: 0 Millas Totales: 0
+
