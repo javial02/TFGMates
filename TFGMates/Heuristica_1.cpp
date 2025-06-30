@@ -117,6 +117,8 @@ int main() {
         env.set("LogFile", "nba_schedule.log");
         env.start();
 
+        env.set(GRB_IntParam_Seed, cont + time(NULL)); // semilla variable
+
         // Crear el modelo
         GRBModel model = GRBModel(env);
 

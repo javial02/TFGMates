@@ -1,7 +1,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <fstream>  // Biblioteca para manejar archivos
+#include <fstream>  
 #include "gurobi_c++.h"
 
 using namespace std;
@@ -39,13 +39,6 @@ vector<vector<double>> distanciasNBA = {
 int main() {
 
     try {
-       /* ofstream archivo("Calendario_modelo_4_equipos_con_numeros.txt"); // Abre el archivo (lo crea si no existe)
-
-        if (!archivo) {  // Verifica si se abrió correctamente
-            cerr << "Error al abrir el archivo" << std::endl;
-            return 1;
-        }*/
-
 
         // Inicializar el entorno de Gurobi
         GRBEnv env = GRBEnv(true);
@@ -67,18 +60,6 @@ int main() {
             }
         }
 
-        /*
-        // Límite máximo de diferencia acumulada entre partidos en casa y fuera por equipo
-        const int MAX_DIF_LOCAL_VISITANTE = 7;
-
-        // Variables auxiliares para la diferencia absoluta en cada jornada
-        GRBVar diff[N][TOTAL_JORNADAS];
-
-        for (int i = 0; i < N; ++i) {
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                diff[i][k] = model.addVar(0.0, GRB_INFINITY, 0.0, GRB_INTEGER,"diff_" + to_string(i) + "_k_" + to_string(k));
-            }
-        }*/
 
 
         // Restricción: Cada equipo solo puede jugar un partido por jornada
@@ -145,59 +126,8 @@ int main() {
                     }
                 }
 
-                int contador = 0;
-                for (int i = 0; i < N; ++i) {
-                    for (int j = 0; j < N; ++j) {
-                        if (i != j && x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            contador++;
-                        }
-                    }
-                }
-
-                cout << contador << endl;
-
                 cout << "-----------------------------" << endl;
             }
-
-            vector<vector<int>> viajes;
-            bool encontrado;
-
-
-            for (int i = 0; i < N; i++) {
-                vector<int> recorrido;
-                for (int k = 0; k < TOTAL_JORNADAS; k++) {
-                    encontrado = false;
-                    for (int j = 0; j < N && !encontrado; j++) {
-                        if (i != j && x[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            recorrido.push_back(i);
-                            encontrado = true;
-                        }
-                        else if (i != j && x[j][i][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            recorrido.push_back(j);
-                            encontrado = true;
-                        }
-                    }
-                }
-
-                viajes.push_back(recorrido);
-
-            }
-
-            /*for (int i = 0; i < N; i++) {
-                for (int j = 0; j < TOTAL_JORNADAS; j++) {
-                    if (j != TOTAL_JORNADAS - 1) {
-                        archivo << viajes[i][j] << " ";
-                    }
-                    else {
-                        archivo << viajes[i][j] << "\n";
-                    }
-
-                }
-
-            }
-
-
-            archivo.close(); // Cierra el archivo*/
 
         }
         else {

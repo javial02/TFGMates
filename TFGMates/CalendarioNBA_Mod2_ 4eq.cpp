@@ -104,23 +104,6 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo << "Equipo con menor distancia recorrida: " << equipos[idxmin].nombre << " con " << dist_eq[idxmin] << " millas" << endl;
     archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
 
-
-    double disteste = 0;
-    double distoeste = 0;
-
-    for (int i = 0; i < N; i++) {
-        if (i < 15) {
-            disteste += dist_eq[i];
-        }
-        else {
-            distoeste += dist_eq[i];
-        }
-    }
-
-    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
-    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
-
-
     archivo.close();
 }
 
@@ -261,87 +244,6 @@ int main() {
             }
 
             imprimeCalendario(viajes, "Modelo_2_4eq.txt");
-
-
-            ofstream archivo("Calendario_modelo_4_equipos.txt");  // Crea o abre el archivo
-
-            if (!archivo) {
-                cout << "Error al abrir el archivo!" << endl;
-                return 1;
-            }
-
-            archivo << "Solucion optima encontrada:" << model.get(GRB_DoubleAttr_ObjVal) << endl;
-
-            // Imprimir el calendario
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                archivo << "Jornada " << k + 1 << ":" << endl;
-                for (int i = 0; i < N; ++i) {
-                    for (int j = 0; j < N; ++j) {
-                        if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            archivo << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
-                        }
-                    }
-                }
-                archivo << "-----------------------------" << endl;
-            }
-
-            archivo.close();
-
-
-            // Inicialización
-            vector<vector<double>> millasPorJornada(equipos.size(), vector<double>(TOTAL_JORNADAS, 0));
-            vector<int> ubicacionActual(equipos.size());
-
-            // Todos los equipos inician en su ciudad
-            for (int i = 0; i < equipos.size(); ++i) {
-                ubicacionActual[i] = i;
-            }
-
-            // Procesar calendario y calcular distancias por jornada
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                cout << "Jornada " << k + 1 << ":" << endl;
-
-                for (int i = 0; i < N; ++i) {
-                    for (int j = 0; j < N; ++j) {
-                        if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            // i = visitante, j = local
-                            cout << equipos[j].nombre << " vs " << equipos[i].nombre << endl;
-
-                            // Visitante (i) viaja desde su ubicación actual hasta j
-                            if (ubicacionActual[i] != j) {
-                                double dist = distanciasNBA[ubicacionActual[i]][j];
-                                millasPorJornada[i][k] += dist;
-                                ubicacionActual[i] = j;
-                            }
-
-                            // Local (j) se queda en casa, no viaja
-                        }
-                    }
-                }
-            }
-
-            // Añadir el viaje de regreso a casa si el equipo terminó fuera
-            for (int i = 0; i < equipos.size(); ++i) {
-                if (ubicacionActual[i] != i) {
-                    double dist = distanciasNBA[ubicacionActual[i]][i];
-                    // Puedes sumar este viaje al final como "post-jornada"
-                    millasPorJornada[i].push_back(dist);
-                    cout << equipos[i].nombre << " vuelve a casa desde " << equipos[ubicacionActual[i]].nombre
-                        << " y recorre " << dist << " millas." << endl;
-                }
-            }
-
-            // Imprimir las millas por jornada
-            cout << "\nResumen de millas recorridas por cada equipo por jornada:\n";
-            for (int i = 0; i < equipos.size(); ++i) {
-                cout << equipos[i].nombre << ": ";
-                double total = 0;
-                for (int k = 0; k < millasPorJornada[i].size(); ++k) {
-                    cout << millasPorJornada[i][k] << " ";
-                    total += millasPorJornada[i][k];
-                }
-                cout << "| Total: " << total << " millas" << endl;
-            }
 
 
         }

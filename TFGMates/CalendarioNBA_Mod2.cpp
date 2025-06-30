@@ -134,14 +134,6 @@ int main() {
 
         const int MAX_DIF_LOCAL_VISITANTE = 10;
 
-        // Variables para la diferencia absoluta acumulada hasta jornada k
-        GRBVar diff[N][TOTAL_JORNADAS];
-        for (int i = 0; i < N; ++i) {
-            for (int k = 0; k < TOTAL_JORNADAS; ++k) {
-                diff[i][k] = model.addVar(0.0, GRB_INFINITY, 0.0, GRB_INTEGER, "diff_" + to_string(i) + "_" + to_string(k));
-            }
-        }
-
         // Restricciones de diferencia acumulada entre casa y fuera
         for (int i = 0; i < N; ++i) {
             GRBLinExpr local = 0;
@@ -151,9 +143,8 @@ int main() {
                 local += y[i][i][k];               // Está en casa
                 visitante += 1 - y[i][i][k];           // Está fuera
 
-                model.addConstr(local - visitante <= diff[i][k], "local_visit_pos_" + to_string(i) + "_" + to_string(k));
-                model.addConstr(visitante - local <= diff[i][k], "local_visit_neg_" + to_string(i) + "_" + to_string(k));
-                model.addConstr(diff[i][k] <= MAX_DIF_LOCAL_VISITANTE, "max_dif_" + to_string(i) + "_" + to_string(k));
+                model.addConstr(local - visitante <= MAX_DIF_LOCAL_VISITANTE, "local_visit_pos_" + to_string(i) + "_" + to_string(k));
+                model.addConstr(visitante - local <= MAX_DIF_LOCAL_VISITANTE, "local_visit_neg_" + to_string(i) + "_" + to_string(k));
             }
         }
 
@@ -337,13 +328,6 @@ int main() {
         model.setObjective(distanciaTotal, GRB_MINIMIZE);
 
 
-
-
-
-
-        // Función objetivo vacía (solo generar el calendario)
-       // model.setObjective(GRBLinExpr(5), GRB_MINIMIZE);
-
         // Optimizar el modelo
         model.optimize();
 
@@ -360,17 +344,6 @@ int main() {
                         }
                     }
                 }
-
-                int contador = 0;
-                for (int i = 0; i < N; ++i) {
-                    for (int j = 0; j < N; ++j) {
-                        if (i != j && y[i][j][k].get(GRB_DoubleAttr_X) > 0.5) {
-                            contador++;
-                        }
-                    }
-                }
-
-                cout << contador << endl;
 
                 cout << "-----------------------------" << endl;
             }
