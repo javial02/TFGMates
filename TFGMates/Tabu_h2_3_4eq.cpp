@@ -84,7 +84,7 @@ void cambiaJornadas_h3(int k1, int k2, vector<vector<int>>& viajes, int local, i
 
 int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
     int jornada = -1;
-    for (int k = 0; k < TOTAL_JORNADAS; k++) {              //Awui se podria poner aleatoriadad al valor inicial de k para darle mas aleatoriedad al partido
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {              
         if (viajes[e1][k] == e1 && viajes[e2][k] == e1) {
             jornada = k;
             break;

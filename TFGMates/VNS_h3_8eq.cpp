@@ -127,23 +127,6 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo << "Equipo con menor distancia recorrida: " << equipos[idxmin].nombre << " con " << dist_eq[idxmin] << " millas" << endl;
     archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
 
-
-    double disteste = 0;
-    double distoeste = 0;
-
-    for (int i = 0; i < N; i++) {
-        if (i < 15) {
-            disteste += dist_eq[i];
-        }
-        else {
-            distoeste += dist_eq[i];
-        }
-    }
-
-    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
-    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
-
-
     archivo.close();
 }
 
@@ -248,8 +231,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                                 if (cambio != -1) {
                                     distancia -= diferencia;
                                     cambiaJornadas_h3(k, cambio, nuevoCalendario, i, j);
-                                    //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
-                                    j = -1;
+                                   j = -1;
                                     break;
                                 }
                             }
@@ -284,7 +266,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
 int main() {
 
-    ifstream archivo("Calendario_8eq.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_8eq.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -320,12 +302,6 @@ int main() {
 
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
-
-    vector<double> t = { 50, 100 };
-    //double t_inicial = 100;
-    double t_minimo = 0.01;
-    vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
-    vector<double> alphas = { 0.90, 0.95, 0.99 };
 
     ofstream archivo2("resultados_vns_h3_8eq.txt"); // Abre el archivo en modo lectura
 

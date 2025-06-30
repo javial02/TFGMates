@@ -96,23 +96,6 @@ void imprimeCalendario(const vector<vector<int>> viajes, string n_archivo) {
     archivo << "Equipo con menor distancia recorrida: " << equipos[idxmin].nombre << " con " << dist_eq[idxmin] << " millas" << endl;
     archivo << "Equipo con mayor distancia recorrida: " << equipos[idxmax].nombre << " con " << dist_eq[idxmax] << " millas" << endl;
 
-
-    double disteste = 0;
-    double distoeste = 0;
-
-    for (int i = 0; i < N; i++) {
-        if (i < 15) {
-            disteste += dist_eq[i];
-        }
-        else {
-            distoeste += dist_eq[i];
-        }
-    }
-
-    archivo << "Media de millas recorridas Conferencia Este: " << disteste / 15 << " Millas Totales: " << disteste << endl;
-    archivo << "Media de millas recorridas Conferencia Oeste: " << distoeste / 15 << " Millas Totales: " << distoeste << endl;
-
-
     archivo.close();
 }
 
@@ -215,7 +198,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
 
 int main() {
 
-    ifstream archivo("Calendario_4eq.txt"); // Abre el archivo en modo lectura
+    ifstream archivo("calendario_4eq.txt"); // Abre el archivo en modo lectura
 
     if (!archivo) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
@@ -258,7 +241,7 @@ int main() {
     vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
     vector<double> alphas = { 0.90, 0.95, 0.99 };
 
-    ofstream archivo2("Temple_simulado_h2_4eq.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("resultados_ts_h2_4eq.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;

@@ -112,7 +112,7 @@ vector<vector<int>> copiar_calendario(const vector<vector<int>> nuevo) {
 
 int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
     int jornada = -1;
-    for (int k = 0; k < TOTAL_JORNADAS; k++) {              //Awui se podria poner aleatoriadad al valor inicial de k para darle mas aleatoriedad al partido
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {              
         if (viajes[e1][k] == e1 && viajes[e2][k] == e1) {
             jornada = k;
             break;
@@ -349,7 +349,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
             distancia = distancia_mejor;
             if (k == 1) {
                 for (int i = 0; i < k1; i++) {
-                    cambiaJornadast2(viajes, distancia);           //REVISAR ESTO!!!!!!!
+                    cambiaJornadast2(viajes, distancia);           
                     cambiaJornadast3(viajes, distancia);
 
                 }
@@ -400,7 +400,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
             }
 
 
-            //double diferencia = 0;
+           
             int i = 0;
 
             while (i < N) {
@@ -416,7 +416,6 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                                     if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
                                         distancia -= diferencia;
 
-                                        //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
                                         j = -1;
                                         break;
                                     }

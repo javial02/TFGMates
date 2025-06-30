@@ -174,7 +174,7 @@ bool comprueba_balance_lyv(const vector<vector<int>>& viajes, int i) {
 
 int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
     int jornada = -1;
-    for (int k = 0; k < TOTAL_JORNADAS; k++) {              //Awui se podria poner aleatoriadad al valor inicial de k para darle mas aleatoriedad al partido
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {              
         if (viajes[e1][k] == e1 && viajes[e2][k] == e1) {
             jornada = k;
             break;
@@ -249,7 +249,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
         while (k <= 3) {
             viajes = copiar_calendario(mejor_calendario);
             distancia = distancia_mejor;
-            //cout << distancia << endl;;
+           
             if (k == 1) {
                 for (int i = 0; i < k1; i++) {
                     cambiaJornadast3(viajes, distancia);
@@ -266,7 +266,7 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                 }
             }
 
-            //cout << distancia << endl;
+            
             double diferencia = 0;
             int i = 0;
 
@@ -282,8 +282,6 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
                                     cambiaJornadas_h3(k, cambio, viajes, i, j);
                                     if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
                                         distancia -= diferencia;
-
-                                        //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
                                         j = -1;
                                         break;
                                     }
@@ -301,7 +299,6 @@ void VNS(vector<vector<int>>& viajes, double& distancia, int max_iter, int limit
 
             if (distancia < distancia_mejor) {
                 distancia_mejor = distancia;
-                //cout << "Mejora: " << distancia_mejor << endl;
                 mejor_calendario = copiar_calendario(viajes);
                 iter_sin_mej = 0;
                 k = 1;
@@ -360,12 +357,6 @@ int main() {
 
     vector<vector<int>> calendario_inicial = copiar_calendario(viajes);
     double dist_inicial = distancia;
-
-    vector<double> t = { 50, 100 };
-    //double t_inicial = 100;
-    double t_minimo = 0.01;
-    vector<int> Ms = { 2, 3, 4, 5, 6, 8, 10 };
-    vector<double> alphas = { 0.90, 0.95, 0.99 };
 
     ofstream archivo2("resultados_vns_h3.txt"); // Abre el archivo en modo lectura
 

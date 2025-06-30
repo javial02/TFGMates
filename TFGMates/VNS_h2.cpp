@@ -312,8 +312,6 @@ int main() {
     vector<int> iteraciones = { 100,200,400 };
     vector<int> limites = { 10,50 };
 
-
-
     archivo2 << distancia << endl;
     cout << distancia << endl;
 

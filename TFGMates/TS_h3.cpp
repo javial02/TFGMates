@@ -59,7 +59,7 @@ void cambiaJornadas_h3(int k1, int k2, vector<vector<int>>& viajes, int local, i
 
 int buscaPartido(vector<vector<int>> viajes, int e1, int e2) {
     int jornada = -1;
-    for (int k = 0; k < TOTAL_JORNADAS; k++) {              //Awui se podria poner aleatoriadad al valor inicial de k para darle mas aleatoriedad al partido
+    for (int k = 0; k < TOTAL_JORNADAS; k++) {              
         if (viajes[e1][k] == e1 && viajes[e2][k] == e1) {
             jornada = k;
             break;
@@ -268,7 +268,6 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
                                 if (comprueba_balance_lyv(viajes, i) && comprueba_balance_lyv(viajes, j)) {
                                     distancia -= diferencia;
 
-                                    //cout << "He cambiado los partidos del equipo " << i << " y " << j << " en las jornadas " << k + 1 << " y " << cambio + 1 << " reduciendo " << diferencia << " millas" << endl;
                                     j = -1;
                                     break;
                                 }
@@ -284,7 +283,7 @@ void temple_simulado(vector<vector<int>>& viajes, double& distancia, double t_in
             i++;
         }
 
-        //cout << "Distancia tras cambios de jornada: " << distancia << endl;
+        
 
         if (distancia < distancia_mejor) {
             distancia_mejor = distancia;
@@ -344,13 +343,12 @@ int main() {
     double dist_inicial = distancia;
 
     vector<double> t = { 50, 100 };
-    //double t_inicial = 100;
     double t_minimo = 0.01;
     vector<int> Ms = { 2, 8 };
     vector<double> alphas = { 0.90, 0.95 };
 
 
-    ofstream archivo2("Temple_simulado_h3.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("resultados_ts_h3.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;

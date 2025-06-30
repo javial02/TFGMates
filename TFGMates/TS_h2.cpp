@@ -291,13 +291,12 @@ int main() {
     double dist_inicial = distancia;
 
     vector<double> t = { 50, 100 };
-    //double t_inicial = 100;
     double t_minimo = 0.01;
     vector<int> Ms = { 2, 8 };
     vector<double> alphas = {0.90, 0.95};
     
 
-    ofstream archivo2("Temple_simulado_h2.txt"); // Abre el archivo en modo lectura
+    ofstream archivo2("resultados_ts_h2.txt"); // Abre el archivo en modo lectura
 
     if (!archivo2) { // Verifica si el archivo se abrió correctamente
         cerr << "Error al abrir el archivo" << std::endl;
