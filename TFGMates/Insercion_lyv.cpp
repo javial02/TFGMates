@@ -511,7 +511,7 @@ int main() {
                     for (int k2 = 0; k2 < viajes[0].size(); k2++) {     
                         if (k2 != k) {
                             if (rivales[local][k2] == -1 && rivales[visitante][k2] == -1) {
-                                //cout << "hola" << endl;
+                                
                                 double dist = distancias(viajes, local, visitante, k, k2);
                                 
                                 if (dist < 0) {
